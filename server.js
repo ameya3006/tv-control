@@ -1,36 +1,27 @@
 const express = require("express");
 const app = express();
 
-app.use(express.json());
+// store last command
+let content = "No message";
 
-// store commands
-let tvCommands = {
-    TV1: "OFF",
-    TV2: "OFF"
-};
+// ✅ Home route (Not Found fix)
+app.get("/", (req, res) => {
+  res.send("TV Control Server Running ✅");
+});
 
-// laptop sends command
+// ✅ Send command from laptop
 app.get("/send", (req, res) => {
-    let device = req.query.device;
-    let cmd = req.query.cmd;
-
-    tvCommands[device] = cmd;
-
-    console.log("Updated:", tvCommands);
-
-    res.send("Command stored");
+  content = req.query.msg || "No message";
+  res.send("Command stored: " + content);
 });
 
-// TV fetches command
-app.get("/get-command", (req, res) => {
-    let device = req.query.device;
-
-    res.json({
-        device: device,
-        command: tvCommands[device]
-    });
+// ✅ TV will fetch latest command
+app.get("/get", (req, res) => {
+  res.send(content);
 });
 
-app.listen(3000, () => {
-    console.log("Server running");
+// ✅ IMPORTANT for Render
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log("Server started on port " + PORT);
 });

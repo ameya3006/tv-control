@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<body style="text-align:center; margin-top:50px;">
+
+<h1>SMART TV CONTROL 🎛️</h1>
+
+<h2>TV1</h2>
+<button onclick="send('TV1','ON')">ON</button>
+<button onclick="send('TV1','OFF')">OFF</button>
+
+<h2>TV2</h2>
+<button onclick="send('TV2','ON')">ON</button>
+<button onclick="send('TV2','OFF')">OFF</button>
+
+<script>
+function send(device, cmd) {
+    fetch(`/send?device=${device}&cmd=${cmd}`);
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>TV Screen</title>
+</head>
+
+<body style="text-align:center; font-size:40px;">
+
+  <div id="screen">Waiting...</div>
+
+  <script>
+    async function load() {
+      try {
+        let res = await fetch("/data");
+        let text = await res.text();
+        document.getElementById("screen").innerText = text;
+      } catch (err) {
+        document.getElementById("screen").innerText = "Error...";
+      }
+    }
+
+    setInterval(load, 1000);
+  </script>
+
+</body>
+</html>

@@ -3,23 +3,16 @@
 <body style="margin:0;background:black;overflow:hidden;">
 
 <video id="video"
-autoplay
-playsinline
-muted
-style="width:100%;height:100%;object-fit:cover;">
+       playsinline
+       muted
+       style="width:100%;height:100%;object-fit:cover;">
 </video>
 
 <script>
 let video = document.getElementById("video");
 
-// 🔥 try auto unmute after small delay (best possible hack)
-setTimeout(() => {
-    video.muted = false;
-    video.play().catch(()=>{});
-}, 2000);
-
-// 🔥 fallback: first touch anywhere = enable sound
-document.body.addEventListener("touchstart", () => {
+// 🔥 IMPORTANT: initial play (required for mobile)
+document.body.addEventListener("click", () => {
     video.muted = false;
     video.play().catch(()=>{});
 }, { once: true });
@@ -29,23 +22,33 @@ setInterval(async () => {
         let res = await fetch("/get");
         let data = await res.json();
 
-        // 👉 load video
-        if (data.url && video.getAttribute("data-src") !== data.url) {
-            video.src = data.url;
-            video.setAttribute("data-src", data.url);
-            video.load();
-        }
+        console.log(data);
 
-        // 👉 control from laptop
-        if (data.isPlaying) {
-            video.play().catch(()=>{});
+        // 👉 अगर URL आहे तर load कर
+        if (data.url) {
+
+            // 🔥 FORCE LOAD EVERY TIME (fix black screen)
+            if (!video.src || video.src !== data.url) {
+                video.src = data.url;
+                video.load();
+            }
+
+            if (data.isPlaying) {
+                video.muted = false;
+                video.play().catch(()=>{});
+            } else {
+                video.pause();
+            }
+
         } else {
+            // 👉 fallback (no URL)
             video.pause();
         }
 
-    } catch (e) {
-        console.log(e);
+    } catch (err) {
+        console.log("ERROR:", err);
     }
+
 }, 1000);
 </script>
 

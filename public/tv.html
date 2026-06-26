@@ -1,32 +1,36 @@
 <!DOCTYPE html>
 <html>
-<body style="margin:0; background:black;">
+<head>
+  <title>TV Screen</title>
+</head>
 
-<video id="video" width="100%" autoplay></video>
+<body style="margin:0; background:black; text-align:center;">
+
+  <video id="video" width="100%" height="100%" controls autoplay></video>
 
 <script>
-let video = document.getElementById("video");
+const server = "https://tv-control.onrender.com";
 
-async function sync() {
+async function loadVideo() {
     try {
-        let res = await fetch("/get");
+        let res = await fetch(server + "/current");
         let data = await res.json();
 
-        if (data.url && video.src !== data.url) {
-            video.src = data.url;
-        }
+        if (data.url) {
+            let video = document.getElementById("video");
 
-        if (data.isPlaying) {
-            video.play().catch(()=>{});
-        } else {
-            video.pause();
+            if (video.src !== data.url) {
+                video.src = data.url;
+                video.play();
+            }
         }
     } catch (e) {
         console.log("Error");
     }
 }
 
-setInterval(sync, 1000);
+setInterval(loadVideo, 2000);
+loadVideo();
 </script>
 
 </body>

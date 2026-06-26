@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>TV Screen</title>
+  <title>TV Player</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -15,35 +15,42 @@
       overflow: hidden;
     }
 
-    /* 🔥 TV FRAME */
-    .tv {
+    /* FULL SCREEN FIX */
+    video {
       position: fixed;
       top: 0;
       left: 0;
+
       width: 100vw;
       height: 100vh;
+
+      object-fit: cover;
       background: black;
+    }
+
+    /* START BUTTON (IMPORTANT FOR AUDIO) */
+    #start {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: black;
+      color: white;
       display: flex;
       justify-content: center;
       align-items: center;
-    }
-
-    /* 🔥 FORCE LANDSCAPE VIEW */
-    video {
-      width: 100vw;
-      height: 56.25vw;  /* 16:9 ratio fix */
-      max-height: 100vh;
-      object-fit: cover;
-      background: black;
+      font-size: 22px;
+      z-index: 10;
     }
   </style>
 </head>
 
 <body>
 
-<div class="tv">
-  <video id="video" autoplay playsinline></video>
-</div>
+<div id="start">Tap to Start ▶</div>
+
+<video id="video" playsinline></video>
 
 <script>
 let video = document.getElementById("video");
@@ -56,22 +63,28 @@ let playlist = [
 
 let index = 0;
 
+/* PLAY VIDEO */
 function playVideo(i) {
   video.src = playlist[i];
-
-  video.muted = false;
-  video.volume = 1;
-
-  video.play().catch(()=>{});
+  video.play();
 }
 
+/* AUTO NEXT */
 video.onended = () => {
   index++;
   if (index >= playlist.length) index = 0;
   playVideo(index);
 };
 
-playVideo(index);
+/* 🔥 IMPORTANT: USER CLICK REQUIRED FOR AUDIO */
+document.getElementById("start").addEventListener("click", () => {
+  document.getElementById("start").style.display = "none";
+
+  video.muted = false;
+  video.volume = 1;
+
+  playVideo(index);
+});
 </script>
 
 </body>

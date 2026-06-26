@@ -3,20 +3,35 @@
 <head>
   <title>TV Screen</title>
 
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <style>
     body {
       margin: 0;
       background: black;
       overflow: hidden;
-    }
 
-    video {
+      /* center video */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
       width: 100vw;
       height: 100vh;
-      object-fit: cover; /* 🔥 full screen crop */
+    }
+
+    /* 🔥 LANDSCAPE FIX */
+    video {
+      width: 100vh;   /* swap trick */
+      height: 100vw;
+      object-fit: cover;
+
+      /* rotate so phone vertical -> video horizontal */
+      transform: rotate(90deg);
     }
   </style>
 </head>
+
 <body>
 
 <video id="video" autoplay playsinline></video>
@@ -24,43 +39,37 @@
 <script>
 let video = document.getElementById("video");
 
-// 🔊 SOUND FIX
+// sound
 video.muted = false;
 video.volume = 1;
 
-// ⏭ AUTO NEXT
+// next video trigger
 video.onended = async () => {
   await fetch("/next");
 };
 
-// 🔁 LOAD VIDEO LOOP
+// main loop
 async function loadVideo() {
   try {
     const res = await fetch("/get");
     const data = await res.json();
 
-    console.log("DATA:", data); // debug
-
     if (data.url && video.src !== data.url) {
       video.src = data.url;
 
-      video.play()
-      .then(() => {
-        console.log("Playing...");
-      })
-      .catch(() => {
-        console.log("Click once on TV screen");
+      video.play().catch(() => {
+        console.log("Tap screen once");
       });
     }
 
     if (data.isPlaying) {
-      video.play();
+      video.play().catch(()=>{});
     } else {
       video.pause();
     }
 
   } catch (err) {
-    console.log("Error:", err);
+    console.log(err);
   }
 
   setTimeout(loadVideo, 1000);

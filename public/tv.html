@@ -19,7 +19,6 @@
       height: 100vh;
     }
 
-    /* 🔥 WRAPPER ROTATION FIX */
     .screen {
       width: 100vh;
       height: 100vw;
@@ -48,31 +47,36 @@ let video = document.getElementById("video");
 video.muted = false;
 video.volume = 1;
 
-video.onended = async () => {
-  await fetch("/next");
-};
+/* 🎬 PLAYLIST (ADD YOUR VIDEOS HERE) */
+let playlist = [
+  "https://www.w3schools.com/html/mov_bbb.mp4",
+  "https://media.w3.org/2010/05/sintel/trailer.mp4",
+  "https://media.w3.org/2010/05/bunny/trailer.mp4"
+];
 
-async function loadVideo() {
-  try {
-    const res = await fetch("/get");
-    const data = await res.json();
+let index = 0;
 
-    if (data.url && video.src !== data.url) {
-      video.src = data.url;
-      video.play().catch(()=>{});
-    }
-
-    if (data.isPlaying) video.play();
-    else video.pause();
-
-  } catch (err) {
-    console.log(err);
-  }
-
-  setTimeout(loadVideo, 1000);
+/* ▶️ PLAY VIDEO */
+function playVideo(i) {
+  video.src = playlist[i];
+  video.play().catch(() => {
+    console.log("Tap screen once for play");
+  });
 }
 
-loadVideo();
+/* ⏭ AUTO NEXT */
+video.onended = () => {
+  index++;
+
+  if (index >= playlist.length) {
+    index = 0; // loop back
+  }
+
+  playVideo(index);
+};
+
+/* 🚀 START */
+playVideo(index);
 </script>
 
 </body>

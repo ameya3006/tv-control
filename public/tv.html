@@ -1,37 +1,54 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>TV Screen</title>
+    <title>TV Screen</title>
 </head>
-
 <body style="margin:0; background:black; text-align:center;">
 
-<video id="video" width="100%" height="100%" autoplay muted playsinline></video>
+<video id="video" width="100%" autoplay></video>
+
+<!-- ONE TIME CLICK FOR SOUND -->
+<button onclick="enableSound()" 
+style="position:absolute; top:10px; left:10px; padding:10px; z-index:10;">
+🔊 Enable Sound
+</button>
 
 <script>
-const server = "https://tv-control.onrender.com";
+let video = document.getElementById("video");
 
-async function loadVideo() {
-    let res = await fetch(server + "/get");
-    let data = await res.json();
+// 🔊 enable sound
+function enableSound() {
+    video.muted = false;
+    video.volume = 1;
+    video.play();
+}
 
-    let video = document.getElementById("video");
+// 🔁 fetch from server
+setInterval(() => {
+    fetch("/get")
+    .then(res => res.json())
+    .then(data => {
 
-    if (data.url) {
-        if (video.src !== data.url) {
+        if (data.url && video.src !== data.url) {
             video.src = data.url;
+            video.load();
+
+            video.muted = false;   // important
+            video.volume = 1;
+
+            if (data.isPlaying) {
+                video.play().catch(()=>{});
+            }
         }
 
         if (data.isPlaying) {
-            video.play();
+            video.play().catch(()=>{});
         } else {
             video.pause();
         }
-    }
-}
 
-setInterval(loadVideo, 2000);
-loadVideo();
+    });
+}, 2000);
 </script>
 
 </body>

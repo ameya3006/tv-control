@@ -2,6 +2,52 @@
 <html>
 <head>
   <title>TV Control Panel</title>
+
+  <style>
+    body {
+      font-family: Arial;
+      background: #111;
+      color: white;
+      text-align: center;
+    }
+
+    input {
+      padding: 12px;
+      width: 60%;
+      margin: 10px;
+      border-radius: 5px;
+      border: none;
+    }
+
+    button {
+      padding: 12px 20px;
+      margin: 5px;
+      border: none;
+      background: #00ffcc;
+      color: black;
+      font-weight: bold;
+      cursor: pointer;
+      border-radius: 5px;
+      font-size: 16px;
+    }
+
+    button:hover {
+      background: #00ccaa;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    li {
+      margin: 8px;
+      padding: 8px;
+      background: #222;
+      border-radius: 5px;
+    }
+  </style>
+
 </head>
 <body>
 
@@ -9,13 +55,14 @@
 
 <h2>Add Video</h2>
 <input type="text" id="videoUrl" placeholder="Enter video URL">
-<button onclick="addVideo()">Add</button>
+<br>
+<button onclick="addVideo()">➕ Add</button>
 
 <h2>Controls</h2>
-<button onclick="startPlaylist()">Start Playlist</button>
-<button onclick="play()">Play</button>
-<button onclick="pause()">Pause</button>
-<button onclick="next()">Next</button>
+<button onclick="startPlaylist()">▶ Start</button>
+<button onclick="play()">▶ Play</button>
+<button onclick="pause()">⏸ Pause</button>
+<button onclick="next()">⏭ Next</button>
 
 <h2>Playlist</h2>
 <ul id="playlist"></ul>
@@ -30,6 +77,7 @@ function addVideo() {
   if (url) {
     playlist.push(url);
     renderPlaylist();
+    document.getElementById("videoUrl").value = "";
   }
 }
 
@@ -40,6 +88,13 @@ function renderPlaylist() {
   playlist.forEach((video, i) => {
     const li = document.createElement("li");
     li.textContent = video;
+
+    // 🔥 highlight current
+    if (i === index) {
+      li.style.background = "#00ffcc";
+      li.style.color = "black";
+    }
+
     list.appendChild(li);
   });
 }
@@ -47,6 +102,8 @@ function renderPlaylist() {
 // ▶ Start playlist
 async function startPlaylist() {
   index = 0;
+  renderPlaylist();
+
   await fetch("/set", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -79,6 +136,8 @@ async function pause() {
 async function next() {
   index++;
   if (index >= playlist.length) index = 0;
+
+  renderPlaylist();
 
   await fetch("/set", {
     method: "POST",

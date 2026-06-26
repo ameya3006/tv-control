@@ -3,53 +3,49 @@
 <body style="margin:0;background:black;overflow:hidden;">
 
 <video id="video"
-       playsinline
-       muted
-       style="width:100%;height:100%;object-fit:cover;">
+playsinline
+muted
+autoplay
+style="width:100%;height:100%;object-fit:cover;">
 </video>
 
 <script>
 let video = document.getElementById("video");
 
-// 🔥 IMPORTANT: initial play (required for mobile)
-document.body.addEventListener("click", () => {
-    video.muted = false;
-    video.play().catch(()=>{});
-}, { once: true });
-
-setInterval(async () => {
+async function sync() {
     try {
         let res = await fetch("/get");
         let data = await res.json();
 
-        console.log(data);
-
-        // 👉 अगर URL आहे तर load कर
         if (data.url) {
 
-            // 🔥 FORCE LOAD EVERY TIME (fix black screen)
-            if (!video.src || video.src !== data.url) {
+            if (video.src !== data.url) {
                 video.src = data.url;
                 video.load();
             }
 
             if (data.isPlaying) {
                 video.muted = false;
-                video.play().catch(()=>{});
+                await video.play().catch(()=>{});
             } else {
                 video.pause();
             }
-
-        } else {
-            // 👉 fallback (no URL)
-            video.pause();
         }
 
-    } catch (err) {
-        console.log("ERROR:", err);
+    } catch(e) {
+        console.log(e);
     }
+}
 
-}, 1000);
+// fast sync (important)
+setInterval(sync, 800);
+
+// 🔥 one tap = enable sound
+document.body.addEventListener("click", () => {
+    video.muted = false;
+    video.play().catch(()=>{});
+}, { once: true });
+
 </script>
 
 </body>

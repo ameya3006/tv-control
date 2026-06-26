@@ -1,49 +1,57 @@
 const express = require("express");
 const app = express();
+const path = require("path");
 
-app.use(express.static(__dirname));
 app.use(express.json());
 
+// static files serve (tv.html + control.html)
+app.use(express.static(__dirname));
+
+// 📦 DATA
 let playlist = [];
 let currentIndex = 0;
 let isPlaying = false;
 
-// ➕ Add song
+// ➕ ADD VIDEO
 app.get("/add", (req, res) => {
-    let url = req.query.url;
+    const url = req.query.url;
+
     if (url) {
         playlist.push(url);
     }
-    res.json({ playlist });
+
+    res.json({ playlist, currentIndex });
 });
 
-// ▶️ Controls
+// 🎮 CONTROL
 app.get("/control", (req, res) => {
-    let cmd = req.query.cmd;
+    const cmd = req.query.cmd;
 
     if (cmd === "play") isPlaying = true;
     if (cmd === "pause") isPlaying = false;
 
-    if (cmd === "next") {
-        if (currentIndex < playlist.length - 1) currentIndex++;
+    if (cmd === "next" && currentIndex < playlist.length - 1) {
+        currentIndex++;
     }
 
-    if (cmd === "prev") {
-        if (currentIndex > 0) currentIndex--;
+    if (cmd === "prev" && currentIndex > 0) {
+        currentIndex--;
     }
 
     res.json({ playlist, currentIndex, isPlaying });
 });
 
-// 📡 TV sync endpoint
+// 📡 TV SYNC (IMPORTANT FIX)
 app.get("/get", (req, res) => {
     res.json({
-        playlist,
+        url: playlist[currentIndex],
         currentIndex,
         isPlaying
     });
 });
 
-app.listen(3000, () => {
-    console.log("Server running on port 3000");
+// 🚀 PORT (RENDER SAFE)
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log("Server running on", PORT);
 });

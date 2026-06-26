@@ -6,13 +6,29 @@ let playlist = [];
 let currentIndex = 0;
 let isPlaying = false;
 
-// ➕ API
+// 🔥 IMPORTANT: ROOT FIX
+app.get("/", (req, res) => {
+    res.sendFile(path.join(__dirname, "control.html"));
+});
+
+// 📺 TV PAGE
+app.get("/tv.html", (req, res) => {
+    res.sendFile(path.join(__dirname, "tv.html"));
+});
+
+// 🖥️ CONTROL PAGE
+app.get("/control.html", (req, res) => {
+    res.sendFile(path.join(__dirname, "control.html"));
+});
+
+// ➕ ADD
 app.get("/add", (req, res) => {
     const url = req.query.url;
     if (url) playlist.push(url);
     res.json({ playlist });
 });
 
+// 🎮 CONTROL
 app.get("/control", (req, res) => {
     const cmd = req.query.cmd;
 
@@ -25,6 +41,7 @@ app.get("/control", (req, res) => {
     res.json({ playlist, currentIndex, isPlaying });
 });
 
+// 📡 GET DATA
 app.get("/get", (req, res) => {
     res.json({
         url: playlist[currentIndex],
@@ -33,21 +50,8 @@ app.get("/get", (req, res) => {
     });
 });
 
-// 🔥 IMPORTANT FIX (THIS IS THE GAME CHANGER)
-app.get("/", (req, res) => {
-    res.send("Server Running");
-});
-
-app.get("/tv.html", (req, res) => {
-    res.sendFile(path.join(__dirname, "tv.html"));
-});
-
-app.get("/control.html", (req, res) => {
-    res.sendFile(path.join(__dirname, "control.html"));
-});
-
-// PORT
+// 🚀 PORT FIX (RENDER MUST)
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log("Running on", PORT);
+    console.log("Server running on", PORT);
 });

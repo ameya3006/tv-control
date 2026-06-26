@@ -13,54 +13,54 @@
     video {
       width: 100vw;
       height: 100vh;
-      object-fit: cover;
+      object-fit: cover; /* 🔥 full screen crop */
     }
   </style>
 </head>
-
 <body>
 
-<video id="video" autoplay playsinline muted></video>
+<video id="video" autoplay playsinline></video>
 
 <script>
 let video = document.getElementById("video");
 
-// ✅ ALWAYS MUTED (autoplay fix)
-video.muted = true;
+// 🔊 SOUND FIX
+video.muted = false;
+video.volume = 1;
 
-// 🔥 USER TAP = UNMUTE
-document.body.addEventListener("click", () => {
-  video.muted = false;
-  video.play();
-});
-
-// 🔥 AUTO NEXT
+// ⏭ AUTO NEXT
 video.onended = async () => {
   await fetch("/next");
 };
 
-// 🔁 LOAD LOOP
+// 🔁 LOAD VIDEO LOOP
 async function loadVideo() {
   try {
     const res = await fetch("/get");
     const data = await res.json();
 
+    console.log("DATA:", data); // debug
+
     if (data.url && video.src !== data.url) {
       video.src = data.url;
 
-      await video.play().catch(() => {
-        console.log("Autoplay blocked");
+      video.play()
+      .then(() => {
+        console.log("Playing...");
+      })
+      .catch(() => {
+        console.log("Click once on TV screen");
       });
     }
 
     if (data.isPlaying) {
-      video.play().catch(()=>{});
+      video.play();
     } else {
       video.pause();
     }
 
   } catch (err) {
-    console.log(err);
+    console.log("Error:", err);
   }
 
   setTimeout(loadVideo, 1000);

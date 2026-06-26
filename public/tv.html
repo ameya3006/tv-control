@@ -1,8 +1,6 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>TV</title>
-
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <style>
@@ -17,22 +15,21 @@
       width: 100vw;
       height: 100vh;
       object-fit: cover;
-      background: black;
+      pointer-events: none;
     }
   </style>
 </head>
 
 <body>
 
-<video id="video" autoplay playsinline></video>
+<video id="video" autoplay playsinline muted></video>
 
 <script>
 let video = document.getElementById("video");
 
 video.src = "https://www.w3schools.com/html/mov_bbb.mp4";
-
-video.muted = false;
-video.volume = 1;
+video.muted = true;
+video.volume = 0;
 
 video.play().catch(()=>{});
 </script>

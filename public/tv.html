@@ -8,17 +8,21 @@
 let video = document.getElementById("video");
 
 async function sync() {
-    let res = await fetch("/get");
-    let data = await res.json();
+    try {
+        let res = await fetch("/get");
+        let data = await res.json();
 
-    if (data.url && video.src !== data.url) {
-        video.src = data.url;
-    }
+        if (data.url && video.src !== data.url) {
+            video.src = data.url;
+        }
 
-    if (data.isPlaying) {
-        video.play().catch(()=>{});
-    } else {
-        video.pause();
+        if (data.isPlaying) {
+            video.play().catch(()=>{});
+        } else {
+            video.pause();
+        }
+    } catch (e) {
+        console.log("Error");
     }
 }
 

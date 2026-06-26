@@ -1,65 +1,162 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TV Control Panel</title>
 
-<style>
-body {
-  margin: 0;
-  background: black;
-  overflow: hidden;
-}
+  <style>
+    body {
+      margin: 0;
+      background: #111;
+      color: white;
+      overflow: hidden;
+      font-family: Arial;
+    }
 
-/* 🔥 Rotate video if phone is vertical */
-video {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  width: 100vh;
-  height: 100vw;
-  transform: translate(-50%, -50%) rotate(90deg);
-  object-fit: cover;
-  background: black;
-}
-</style>
+    /* 🔥 ROTATE FULL UI */
+    .container {
+      position: absolute;
+      width: 100vh;
+      height: 100vw;
+      top: 0;
+      left: 0;
+      transform: rotate(90deg);
+      transform-origin: center center;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+
+    input {
+      padding: 10px;
+      width: 60%;
+      margin: 10px;
+    }
+
+    button {
+      padding: 10px 20px;
+      margin: 5px;
+      border: none;
+      background: #00ffcc;
+      color: black;
+      font-weight: bold;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+
+    button:hover {
+      background: #00ccaa;
+    }
+
+    ul {
+      max-height: 150px;
+      overflow-y: auto;
+    }
+
+    li {
+      margin: 5px;
+      font-size: 12px;
+    }
+  </style>
 </head>
-
 <body>
 
-<video id="video" autoplay muted playsinline></video>
+<div class="container">
+
+<h1>🎮 TV Control Panel</h1>
+
+<h3>Add Video</h3>
+<input type="text" id="videoUrl" placeholder="Enter video URL">
+<button onclick="addVideo()">Add</button>
+
+<h3>Controls</h3>
+<button onclick="startPlaylist()">Start</button>
+<button onclick="play()">Play</button>
+<button onclick="pause()">Pause</button>
+<button onclick="next()">Next</button>
+
+<h3>Playlist</h3>
+<ul id="playlist"></ul>
+
+</div>
 
 <script>
-let video = document.getElementById("video");
+let playlist = [];
+let index = 0;
 
-async function sync() {
-    try {
-        let res = await fetch("/get");
-        let data = await res.json();
-
-        if (data.url) {
-            if (video.src !== data.url) {
-                video.src = data.url;
-                video.load();
-            }
-
-            if (data.isPlaying) {
-                video.play().catch(()=>{});
-            } else {
-                video.pause();
-            }
-        }
-    } catch (e) {}
+// ➕ Add video
+function addVideo() {
+  const url = document.getElementById("videoUrl").value;
+  if (url) {
+    playlist.push(url);
+    renderPlaylist();
+  }
 }
 
-setInterval(sync, 1000);
+// 📋 Render playlist
+function renderPlaylist() {
+  const list = document.getElementById("playlist");
+  list.innerHTML = "";
+  playlist.forEach((video) => {
+    const li = document.createElement("li");
+    li.textContent = video;
+    list.appendChild(li);
+  });
+}
 
-// 🔊 unlock audio
-document.body.addEventListener("click", () => {
-    video.muted = false;
-    video.play();
-}, { once: true });
+// ▶ Start playlist
+async function startPlaylist() {
+  index = 0;
+
+  await fetch("/playlist", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({ list: playlist })
+  });
+
+  await fetch("/set", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({
+      url: playlist[index],
+      action: "play"
+    })
+  });
+}
+
+// ▶ Play
+async function play() {
+  await fetch("/set", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({ action: "play" })
+  });
+}
+
+// ⏸ Pause
+async function pause() {
+  await fetch("/set", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({ action: "pause" })
+  });
+}
+
+// ⏭ Next
+async function next() {
+  index++;
+  if (index >= playlist.length) index = 0;
+
+  await fetch("/set", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({
+      url: playlist[index],
+      action: "play"
+    })
+  });
+}
 </script>
 
 </body>
 </html>
-

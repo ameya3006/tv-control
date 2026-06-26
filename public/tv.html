@@ -3,24 +3,35 @@
 <body style="margin:0;background:black;overflow:hidden;">
 
 <video id="video"
-playsinline
-muted
-autoplay
-style="width:100%;height:100%;object-fit:cover;">
+       autoplay
+       playsinline
+       muted
+       webkit-playsinline
+       style="width:100%;height:100%;object-fit:cover;">
 </video>
 
 <script>
 let video = document.getElementById("video");
 
+// 🔥 IMPORTANT: force initial play (mobile fix)
+function unlockAudio() {
+    video.muted = false;
+    video.play().catch(()=>{});
+}
+document.body.addEventListener("click", unlockAudio, { once: true });
+
 async function sync() {
     try {
-        let res = await fetch("/get");
+        let res = await fetch("/get?t=" + Date.now()); // 🔥 cache bust
         let data = await res.json();
+
+        console.log("DATA:", data);
 
         if (data.url) {
 
-            if (video.src !== data.url) {
-                video.src = data.url;
+            // 🔥 FORCE reload ALWAYS (main black screen fix)
+            if (!video.src || !video.src.includes(data.url)) {
+                video.src = data.url + "#t=" + Date.now(); // 🔥 force refresh
                 video.load();
             }
 
@@ -30,22 +41,18 @@ async function sync() {
             } else {
                 video.pause();
             }
+
+        } else {
+            video.pause();
         }
 
-    } catch(e) {
-        console.log(e);
+    } catch (e) {
+        console.log("ERROR:", e);
     }
 }
 
-// fast sync (important)
-setInterval(sync, 800);
-
-// 🔥 one tap = enable sound
-document.body.addEventListener("click", () => {
-    video.muted = false;
-    video.play().catch(()=>{});
-}, { once: true });
-
+// 🔥 faster sync = less blank chance
+setInterval(sync, 700);
 </script>
 
 </body>

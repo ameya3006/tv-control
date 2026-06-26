@@ -1,26 +1,59 @@
 <!DOCTYPE html>
 <html>
-<body>
+<head>
+    <title>TV Control Panel</title>
+</head>
 
-<h2>Control Panel</h2>
+<body style="font-family:Arial; padding:20px; background:#111; color:white;">
 
-<input id="url" placeholder="Video URL" style="width:300px;">
-<button onclick="add()">Add</button>
+<h2>🎮 TV Control Panel</h2>
+
+<!-- ➕ Add Video -->
+<input id="url" placeholder="Paste video URL here"
+style="width:350px; padding:10px;">
+
+<button onclick="addVideo()" style="padding:10px;">Add</button>
 
 <br><br>
 
-<button onclick="send('play')">Play</button>
-<button onclick="send('pause')">Pause</button>
-<button onclick="send('next')">Next</button>
+<!-- 🎮 Controls -->
+<button onclick="send('play')" style="padding:10px;">▶ Play</button>
+<button onclick="send('pause')" style="padding:10px;">⏸ Pause</button>
+<button onclick="send('next')" style="padding:10px;">⏭ Next</button>
+<button onclick="send('prev')" style="padding:10px;">⏮ Prev</button>
+
+<br><br>
+
+<p id="status">Status: Ready</p>
 
 <script>
-function add() {
+function addVideo() {
     let url = document.getElementById("url").value;
-    fetch("/add?url=" + encodeURIComponent(url));
+
+    if (!url) {
+        alert("Video URL टाक आधी");
+        return;
+    }
+
+    fetch("/add?url=" + encodeURIComponent(url))
+    .then(res => res.json())
+    .then(data => {
+        document.getElementById("status").innerText = "Added to playlist ✅";
+        document.getElementById("url").value = "";
+    })
+    .catch(() => {
+        document.getElementById("status").innerText = "Error ❌";
+    });
 }
 
 function send(cmd) {
-    fetch("/control?cmd=" + cmd);
+    fetch("/control?cmd=" + cmd)
+    .then(() => {
+        document.getElementById("status").innerText = "Command: " + cmd;
+    })
+    .catch(() => {
+        document.getElementById("status").innerText = "Error ❌";
+    });
 }
 </script>
 

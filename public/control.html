@@ -2,9 +2,9 @@
 <html>
 <body>
 
-<h2>TV Control Panel</h2>
+<h2>Control Panel</h2>
 
-<input id="url" placeholder="Enter video URL" style="width:300px;">
+<input id="url" placeholder="Video URL" style="width:300px;">
 <button onclick="add()">Add</button>
 
 <br><br>
@@ -12,13 +12,11 @@
 <button onclick="send('play')">Play</button>
 <button onclick="send('pause')">Pause</button>
 <button onclick="send('next')">Next</button>
-<button onclick="send('prev')">Prev</button>
 
 <script>
 function add() {
     let url = document.getElementById("url").value;
     fetch("/add?url=" + encodeURIComponent(url));
-    alert("Added!");
 }
 
 function send(cmd) {

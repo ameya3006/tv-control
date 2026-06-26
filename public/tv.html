@@ -1,32 +1,29 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <title>TV Screen</title>
-</head>
+<body style="margin:0; background:black;">
 
-<body style="margin:0; background:black; color:white; text-align:center;">
+<video id="video" width="100%" autoplay></video>
 
-  <h2>TV SCREEN</h2>
+<script>
+let video = document.getElementById("video");
 
-  <div id="screen" style="font-size:40px;">
-    Waiting...
-  </div>
+async function sync() {
+    let res = await fetch("/get");
+    let data = await res.json();
 
-  <script>
-    async function loadData() {
-      try {
-        let res = await fetch("/data");
-        let text = await res.text();
-
-        document.getElementById("screen").innerText = text;
-      } catch (e) {
-        document.getElementById("screen").innerText = "Connection Error ❌";
-      }
+    if (data.url && video.src !== data.url) {
+        video.src = data.url;
     }
 
-    setInterval(loadData, 1000);
-    loadData();
-  </script>
+    if (data.isPlaying) {
+        video.play().catch(()=>{});
+    } else {
+        video.pause();
+    }
+}
+
+setInterval(sync, 1000);
+</script>
 
 </body>
 </html>

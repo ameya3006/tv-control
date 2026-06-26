@@ -11,7 +11,7 @@ html, body {
   overflow: hidden;
 }
 
-/* 🔥 FORCE LANDSCAPE VIEW */
+/* 🔥 FORCE LANDSCAPE */
 video {
   position: absolute;
   top: 50%;
@@ -26,7 +26,8 @@ video {
 
 <body>
 
-<video id="video" playsinline></video>
+<!-- 🔥 IMPORTANT: muted helps autoplay, later we unmute -->
+<video id="video" playsinline autoplay muted></video>
 
 <script>
 const video = document.getElementById("video");
@@ -36,7 +37,17 @@ let lastState = {
   isPlaying: false
 };
 
-// 🔥 fast sync with server
+// 🔥 unlock audio on first tap (VERY IMPORTANT for mobile)
+document.body.addEventListener("click", () => {
+  video.muted = false;
+  video.volume = 1.0;
+  video.play().catch(()=>{});
+});
+
+video.volume = 1.0;
+video.muted = false;
+
+// 🔥 sync with server
 setInterval(async () => {
   try {
     const res = await fetch("/get");
@@ -51,7 +62,16 @@ setInterval(async () => {
 
     // PLAY
     if (data.isPlaying && !lastState.isPlaying) {
-      video.play().catch(()=>{});
+      video.muted = false;
+      video.volume = 1.0;
+
+      video.play().catch((err) => {
+        console.log("Play blocked:", err);
+
+        // fallback autoplay safety
+        video.muted = true;
+        video.play();
+      });
     }
 
     // PAUSE

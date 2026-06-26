@@ -10,9 +10,14 @@
       overflow: hidden;
     }
 
+    /* 🔥 HORIZONTAL FIX */
     video {
-      width: 100vw;
-      height: 100vh;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 100vh;
+      height: 100vw;
+      transform: translate(-50%, -50%) rotate(90deg);
       object-fit: cover;
     }
   </style>
@@ -25,23 +30,29 @@
 <script>
 let video = document.getElementById("video");
 
-// 🔥 autoplay fix
-video.muted = true;
+// 🔊 AUDIO FIX
+video.muted = false;
 video.volume = 1;
 
-// 🔥 auto next
+// 🔥 AUTO NEXT FIX
 video.onended = async () => {
   await fetch("/next");
+
+  // 🔁 force reload
+  setTimeout(() => {
+    video.src = "";
+  }, 200);
 };
 
-// 🔁 fetch loop
+// 🔁 FETCH LOOP (LOAD FIX INCLUDED)
 async function loadVideo() {
   try {
     const res = await fetch("/get");
     const data = await res.json();
 
     if (data.url && video.src !== data.url) {
-      video.src = data.url;
+      // 🔥 CACHE BREAK FIX
+      video.src = data.url + "?t=" + new Date().getTime();
 
       video.play().catch(() => {
         console.log("User interaction needed");

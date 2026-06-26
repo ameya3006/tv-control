@@ -15,7 +15,7 @@
   <script>
     async function loadData() {
       try {
-        let res = await fetch("/get");
+        let res = await fetch("/data");
         let text = await res.text();
 
         document.getElementById("screen").innerText = text;

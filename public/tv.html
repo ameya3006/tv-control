@@ -11,7 +11,7 @@ html, body {
   overflow: hidden;
 }
 
-/* 🔥 FORCE LANDSCAPE */
+/* 🔥 FORCE LANDSCAPE MODE */
 video {
   position: absolute;
   top: 50%;
@@ -26,8 +26,7 @@ video {
 
 <body>
 
-<!-- 🔥 IMPORTANT: muted helps autoplay, later we unmute -->
-<video id="video" playsinline autoplay muted></video>
+<video id="video" playsinline></video>
 
 <script>
 const video = document.getElementById("video");
@@ -37,23 +36,27 @@ let lastState = {
   isPlaying: false
 };
 
-// 🔥 unlock audio on first tap (VERY IMPORTANT for mobile)
-document.body.addEventListener("click", () => {
+// 🔥 AUDIO UNLOCK (IMPORTANT FOR MOBILE)
+function unlockAudio() {
   video.muted = false;
   video.volume = 1.0;
   video.play().catch(()=>{});
-});
+}
 
-video.volume = 1.0;
+document.body.addEventListener("click", unlockAudio);
+document.body.addEventListener("touchstart", unlockAudio);
+
+// default audio ON
 video.muted = false;
+video.volume = 1.0;
 
-// 🔥 sync with server
+// 🔥 SYNC LOOP
 setInterval(async () => {
   try {
     const res = await fetch("/get");
     const data = await res.json();
 
-    // URL change
+    // URL update
     if (data.url && data.url !== lastState.url) {
       video.src = data.url;
       video.load();
@@ -65,13 +68,17 @@ setInterval(async () => {
       video.muted = false;
       video.volume = 1.0;
 
-      video.play().catch((err) => {
-        console.log("Play blocked:", err);
+      const playPromise = video.play();
 
-        // fallback autoplay safety
-        video.muted = true;
-        video.play();
-      });
+      if (playPromise !== undefined) {
+        playPromise.catch(err => {
+          console.log("Autoplay blocked:", err);
+
+          // fallback
+          video.muted = true;
+          video.play();
+        });
+      }
     }
 
     // PAUSE

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Landscape TV</title>
+  <title>TV</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -15,22 +15,20 @@
       overflow: hidden;
     }
 
-    /* 🔥 FORCE LANDSCAPE LOOK */
+    /* 🔥 LANDSCAPE FORCE WRAPPER */
     .wrap {
       position: fixed;
       top: 0;
       left: 0;
 
-      width: 100vh;   /* swap */
-      height: 100vw;  /* swap */
-
-      transform: rotate(90deg);
-      transform-origin: center;
+      width: 100vh;
+      height: 100vw;
 
       background: black;
-      display: flex;
-      justify-content: center;
-      align-items: center;
+
+      /* 🔥 IMPORTANT FIX */
+      transform: rotate(-90deg) translateX(-100vw);
+      transform-origin: top left;
     }
 
     video {
@@ -44,10 +42,18 @@
 <body>
 
 <div class="wrap">
-  <video autoplay controls playsinline>
-    <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
-  </video>
+  <video id="video" autoplay playsinline></video>
 </div>
+
+<script>
+let video = document.getElementById("video");
+
+video.src = "https://www.w3schools.com/html/mov_bbb.mp4";
+video.muted = false;
+video.volume = 1;
+
+video.play().catch(()=>{});
+</script>
 
 </body>
 </html>

@@ -2,23 +2,30 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body {
+  margin: 0;
+  background: black;
+  overflow: hidden;
+}
+
+/* Force full screen video */
+video {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  object-fit: cover;
+  background: black;
+}
+</style>
 </head>
 
-<body style="margin:0;background:black;overflow:hidden;">
+<body>
 
-<video id="video"
-playsinline
-autoplay
-muted
-style="
-position:fixed;
-top:0;
-left:0;
-width:100vw;
-height:100vh;
-object-fit:cover;
-background:black;">
-</video>
+<video id="video" autoplay muted playsinline></video>
 
 <script>
 let video = document.getElementById("video");
@@ -45,11 +52,17 @@ async function sync() {
 
 setInterval(sync, 1000);
 
-// 🔊 unlock audio on click
+// 🔊 unlock sound
 document.body.addEventListener("click", () => {
     video.muted = false;
     video.play();
 }, { once: true });
+
+
+// 🔥 FORCE LANDSCAPE (mobile)
+if (screen.orientation && screen.orientation.lock) {
+    screen.orientation.lock("landscape").catch(() => {});
+}
 </script>
 
 </body>

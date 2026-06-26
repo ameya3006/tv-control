@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>TV CONTROL</title>
+</head>
+
+<body>
+
+<h2>📺 TV CONTROL + PLAYLIST</h2>
+
+<!-- 🔥 MULTIPLE URL INPUT -->
+<textarea id="url" rows="6" cols="50"
+placeholder="Enter multiple video URLs (one per line)"></textarea>
+
+<br><br>
+
+<button onclick="addVideo()">➕ Add Video</button>
+
+<br><br>
+
+<button onclick="playNow()">▶ Play</button>
+<button onclick="startPlaylist()">📂 Start Playlist</button>
+<button onclick="nextVideo()">⏭ Next</button>
+<button onclick="pauseAll()">⏸ Pause</button>
+<button onclick="enableSound()">🔊 Enable Sound</button>
+
+<h3>🎬 Playlist</h3>
+<ul id="list"></ul>
+
+<script src="/socket.io/socket.io.js"></script>
+
+<script>
+const socket = io();
+
+/* ➕ ADD MULTIPLE VIDEOS */
+function addVideo() {
+
+    let input = document.getElementById("url").value;
+
+    let urls = input.split("\n");
+
+    urls.forEach(url => {
+        if (url.trim() !== "") {
+            socket.emit("add-video", url.trim());
+        }
+    });
+
+    document.getElementById("url").value = "";
+}
+
+/* ▶ PLAY FIRST VIDEO */
+function playNow() {
+    socket.emit("play-start");
+}
+
+/* 📂 START PLAYLIST */
+function startPlaylist() {
+    socket.emit("play-start");
+}
+
+/* ⏭ NEXT */
+function nextVideo() {
+    socket.emit("next");
+}
+
+/* ⏸ PAUSE */
+function pauseAll() {
+    socket.emit("all-pause");
+}
+
+/* 🔊 SOUND */
+function enableSound() {
+    socket.emit("sound-on");
+}
+
+/* SHOW PLAYLIST */
+socket.on("playlist", (list) => {
+
+    let ul = document.getElementById("list");
+    ul.innerHTML = "";
+
+    list.forEach((v, i) => {
+        let li = document.createElement("li");
+        li.innerText = (i+1) + ". " + v;
+        ul.appendChild(li);
+    });
+
+});
+</script>
+
+</body>
+</html>

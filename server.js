@@ -1,27 +1,28 @@
 const express = require("express");
+const path = require("path");
+const http = require("http");
+
 const app = express();
+const server = http.createServer(app);
 
-// store last command
-let content = "No message";
+app.use(express.static(path.join(__dirname, "public")));
 
-// ✅ Home route (Not Found fix)
-app.get("/", (req, res) => {
-  res.send("TV Control Server Running ✅");
+let screenData = "Waiting...";
+
+// 📺 TV will call this
+app.get("/data", (req, res) => {
+    res.send(screenData);
 });
 
-// ✅ Send command from laptop
+// 📱 Control will send message here
 app.get("/send", (req, res) => {
-  content = req.query.msg || "No message";
-  res.send("Command stored: " + content);
+    screenData = req.query.msg || "No message";
+    res.send("OK");
 });
 
-// ✅ TV will fetch latest command
-app.get("/get", (req, res) => {
-  res.send(content);
+app.get("/", (req, res) => {
+    res.send("TV Control Server Running ✅");
 });
 
-// ✅ IMPORTANT for Render
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log("Server started on port " + PORT);
-});
+server.listen(PORT, () => console.log("Server running"));

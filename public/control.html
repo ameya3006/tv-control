@@ -1,59 +1,61 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>TV Control Panel</title>
+  <title>TV Control Panel</title>
 </head>
+<body>
 
-<body style="font-family:Arial; padding:20px; background:#111; color:white;">
+<h1>🎮 TV Control Panel</h1>
 
-<h2>🎮 TV Control Panel</h2>
+<h2>Add Video</h2>
+<input type="text" id="videoUrl" placeholder="Enter video URL">
+<button onclick="addVideo()">Add</button>
 
-<!-- ➕ Add Video -->
-<input id="url" placeholder="Paste video URL here"
-style="width:350px; padding:10px;">
+<h2>Controls</h2>
+<button onclick="startPlaylist()">Start Playlist</button>
+<button onclick="play()">Play</button>
+<button onclick="pause()">Pause</button>
+<button onclick="next()">Next</button>
 
-<button onclick="addVideo()" style="padding:10px;">Add</button>
-
-<br><br>
-
-<!-- 🎮 Controls -->
-<button onclick="send('play')" style="padding:10px;">▶ Play</button>
-<button onclick="send('pause')" style="padding:10px;">⏸ Pause</button>
-<button onclick="send('next')" style="padding:10px;">⏭ Next</button>
-<button onclick="send('prev')" style="padding:10px;">⏮ Prev</button>
-
-<br><br>
-
-<p id="status">Status: Ready</p>
+<h2>Playlist</h2>
+<ul id="playlist"></ul>
 
 <script>
+let playlist = [];
+
 function addVideo() {
-    let url = document.getElementById("url").value;
-
-    if (!url) {
-        alert("Video URL टाक आधी");
-        return;
-    }
-
-    fetch("/add?url=" + encodeURIComponent(url))
-    .then(res => res.json())
-    .then(data => {
-        document.getElementById("status").innerText = "Added to playlist ✅";
-        document.getElementById("url").value = "";
-    })
-    .catch(() => {
-        document.getElementById("status").innerText = "Error ❌";
-    });
+  const url = document.getElementById("videoUrl").value;
+  if (url) {
+    playlist.push(url);
+    renderPlaylist();
+  }
 }
 
-function send(cmd) {
-    fetch("/control?cmd=" + cmd)
-    .then(() => {
-        document.getElementById("status").innerText = "Command: " + cmd;
-    })
-    .catch(() => {
-        document.getElementById("status").innerText = "Error ❌";
-    });
+function renderPlaylist() {
+  const list = document.getElementById("playlist");
+  list.innerHTML = "";
+  playlist.forEach(video => {
+    const li = document.createElement("li");
+    li.textContent = video;
+    list.appendChild(li);
+  });
+}
+
+function startPlaylist() {
+  localStorage.setItem("playlist", JSON.stringify(playlist));
+  localStorage.setItem("index", 0);
+}
+
+function play() {
+  localStorage.setItem("action", "play");
+}
+
+function pause() {
+  localStorage.setItem("action", "pause");
+}
+
+function next() {
+  localStorage.setItem("action", "next");
 }
 </script>
 

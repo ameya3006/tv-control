@@ -5,36 +5,64 @@
 </head>
 <body>
 
-<h2>Add Video</h2>
+<h2>🎮 TV Control Panel</h2>
 
+<!-- ADD VIDEO -->
+<h3>Add Video</h3>
 <input type="text" id="videoUrl" placeholder="Enter video URL">
 <button onclick="addVideo()">Add</button>
 
+<br><br>
+
+<!-- CONTROLS -->
+<h3>Controls</h3>
+<button onclick="sendCommand('start')">Start Playlist</button>
+<button onclick="sendCommand('play')">Play</button>
+<button onclick="sendCommand('pause')">Pause</button>
+<button onclick="sendCommand('next')">Next</button>
+
+<br><br>
+
+<!-- PLAYLIST -->
+<h3>Playlist</h3>
 <ul id="playlist"></ul>
 
 <script>
-let playlist = [];
+const server = "https://tv-control.onrender.com"; // tuzha server URL
 
 function addVideo() {
     let url = document.getElementById("videoUrl").value;
 
-    if (url === "") {
-        alert("Enter URL first");
-        return;
-    }
-
-    playlist.push(url);
-
-    let li = document.createElement("li");
-    li.innerText = url;
-
-    document.getElementById("playlist").appendChild(li);
-
-    console.log("Added:", url);
-
-    // clear input
-    document.getElementById("videoUrl").value = "";
+    fetch(server + "/add?url=" + encodeURIComponent(url))
+    .then(res => res.text())
+    .then(data => {
+        alert(data);
+        loadPlaylist();
+    });
 }
+
+function sendCommand(cmd) {
+    fetch(server + "/control?cmd=" + cmd)
+    .then(res => res.text())
+    .then(data => alert(data));
+}
+
+function loadPlaylist() {
+    fetch(server + "/playlist")
+    .then(res => res.json())
+    .then(data => {
+        let list = document.getElementById("playlist");
+        list.innerHTML = "";
+
+        data.forEach(video => {
+            let li = document.createElement("li");
+            li.innerText = video;
+            list.appendChild(li);
+        });
+    });
+}
+
+loadPlaylist();
 </script>
 
 </body>

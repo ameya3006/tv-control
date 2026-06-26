@@ -1,79 +1,65 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>TV Screen</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <style>
-    body {
-      margin: 0;
-      background: black;
-      overflow: hidden;
-    }
+<style>
+body {
+  margin: 0;
+  background: black;
+  overflow: hidden;
+}
 
-    video {
-      width: 100vw;
-      height: 100vh;
-      object-fit: cover;
-    }
-  </style>
+/* 🔥 Rotate video if phone is vertical */
+video {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 100vh;
+  height: 100vw;
+  transform: translate(-50%, -50%) rotate(90deg);
+  object-fit: cover;
+  background: black;
+}
+</style>
 </head>
+
 <body>
 
-<video id="video" autoplay></video>
+<video id="video" autoplay muted playsinline></video>
 
 <script>
 let video = document.getElementById("video");
 
-// 🔊 SOUND FIX
-video.muted = false;
-video.volume = 1;
+async function sync() {
+    try {
+        let res = await fetch("/get");
+        let data = await res.json();
 
-// 🔁 AUTO NEXT
-video.onended = async () => {
-  await fetch("/next");
-};
+        if (data.url) {
+            if (video.src !== data.url) {
+                video.src = data.url;
+                video.load();
+            }
 
-// 🔄 FETCH LOOP
-async function loadVideo() {
-  try {
-    const res = await fetch("/get");
-    const data = await res.json();
-
-    if (data.url && video.src !== data.url) {
-
-      // smooth transition
-      video.style.opacity = 0;
-
-      setTimeout(() => {
-        video.src = data.url;
-
-        video.play()
-        .then(() => {
-          console.log("Playing...");
-        })
-        .catch(() => {
-          console.log("Click required on TV once");
-        });
-
-        video.style.opacity = 1;
-      }, 300);
-    }
-
-    if (data.isPlaying) {
-      video.play();
-    } else {
-      video.pause();
-    }
-
-  } catch (e) {
-    console.log("Error:", e);
-  }
-
-  setTimeout(loadVideo, 1000);
+            if (data.isPlaying) {
+                video.play().catch(()=>{});
+            } else {
+                video.pause();
+            }
+        }
+    } catch (e) {}
 }
 
-loadVideo();
+setInterval(sync, 1000);
+
+// 🔊 unlock audio
+document.body.addEventListener("click", () => {
+    video.muted = false;
+    video.play();
+}, { once: true });
 </script>
 
 </body>
 </html>
+

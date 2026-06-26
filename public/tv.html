@@ -1,54 +1,38 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <title>TV Screen</title>
-</head>
-<body style="margin:0; background:black; text-align:center;">
+<body style="margin:0; background:black;">
 
-<video id="video" width="100%" autoplay></video>
-
-<!-- ONE TIME CLICK FOR SOUND -->
-<button onclick="enableSound()" 
-style="position:absolute; top:10px; left:10px; padding:10px; z-index:10;">
-🔊 Enable Sound
-</button>
+<video id="video" width="100%" height="100%" autoplay playsinline></video>
 
 <script>
-let video = document.getElementById("video");
+const video = document.getElementById("video");
 
-// 🔊 enable sound
-function enableSound() {
-    video.muted = false;
-    video.volume = 1;
-    video.play();
+// 🔁 Fetch video from server
+async function loadVideo() {
+    const res = await fetch("/get");
+    const data = await res.json();
+
+    if (data.url && video.src !== data.url) {
+        video.src = data.url;
+        video.load();
+    }
+
+    if (data.isPlaying) {
+        video.play().catch(() => {});
+    } else {
+        video.pause();
+    }
 }
 
-// 🔁 fetch from server
-setInterval(() => {
-    fetch("/get")
-    .then(res => res.json())
-    .then(data => {
+// ⏱ refresh every 1 sec
+setInterval(loadVideo, 1000);
 
-        if (data.url && video.src !== data.url) {
-            video.src = data.url;
-            video.load();
+// 🔊 ONE TIME SOUND ENABLE (NO TOGGLE)
+document.body.addEventListener("click", () => {
+    video.muted = false;
+    video.play();
+}, { once: true });
 
-            video.muted = false;   // important
-            video.volume = 1;
-
-            if (data.isPlaying) {
-                video.play().catch(()=>{});
-            }
-        }
-
-        if (data.isPlaying) {
-            video.play().catch(()=>{});
-        } else {
-            video.pause();
-        }
-
-    });
-}, 2000);
 </script>
 
 </body>

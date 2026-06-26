@@ -2,46 +2,29 @@ const express = require("express");
 const app = express();
 const path = require("path");
 
-app.use(express.json());
-
-// static files serve (tv.html + control.html)
-app.use(express.static(__dirname));
-
-// 📦 DATA
 let playlist = [];
 let currentIndex = 0;
 let isPlaying = false;
 
-// ➕ ADD VIDEO
+// ➕ API
 app.get("/add", (req, res) => {
     const url = req.query.url;
-
-    if (url) {
-        playlist.push(url);
-    }
-
-    res.json({ playlist, currentIndex });
+    if (url) playlist.push(url);
+    res.json({ playlist });
 });
 
-// 🎮 CONTROL
 app.get("/control", (req, res) => {
     const cmd = req.query.cmd;
 
     if (cmd === "play") isPlaying = true;
     if (cmd === "pause") isPlaying = false;
 
-    if (cmd === "next" && currentIndex < playlist.length - 1) {
-        currentIndex++;
-    }
-
-    if (cmd === "prev" && currentIndex > 0) {
-        currentIndex--;
-    }
+    if (cmd === "next" && currentIndex < playlist.length - 1) currentIndex++;
+    if (cmd === "prev" && currentIndex > 0) currentIndex--;
 
     res.json({ playlist, currentIndex, isPlaying });
 });
 
-// 📡 TV SYNC (IMPORTANT FIX)
 app.get("/get", (req, res) => {
     res.json({
         url: playlist[currentIndex],
@@ -50,8 +33,21 @@ app.get("/get", (req, res) => {
     });
 });
 
-// 🚀 PORT (RENDER SAFE)
+// 🔥 IMPORTANT FIX (THIS IS THE GAME CHANGER)
+app.get("/", (req, res) => {
+    res.send("Server Running");
+});
+
+app.get("/tv.html", (req, res) => {
+    res.sendFile(path.join(__dirname, "tv.html"));
+});
+
+app.get("/control.html", (req, res) => {
+    res.sendFile(path.join(__dirname, "control.html"));
+});
+
+// PORT
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log("Server running on", PORT);
+    console.log("Running on", PORT);
 });

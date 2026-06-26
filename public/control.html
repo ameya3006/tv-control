@@ -1,61 +1,42 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <title>TV Control Panel</title>
-</head>
 <body>
 
-<h1>🎮 TV Control Panel</h1>
+<h1>TV Control</h1>
 
-<h2>Add Video</h2>
-<input type="text" id="videoUrl" placeholder="Enter video URL">
-<button onclick="addVideo()">Add</button>
+<input id="url" placeholder="Video URL">
+<button onclick="setVideo()">Set</button>
 
-<h2>Controls</h2>
-<button onclick="startPlaylist()">Start Playlist</button>
+<br><br>
+
 <button onclick="play()">Play</button>
 <button onclick="pause()">Pause</button>
-<button onclick="next()">Next</button>
-
-<h2>Playlist</h2>
-<ul id="playlist"></ul>
 
 <script>
-let playlist = [];
+async function setVideo() {
+  let url = document.getElementById("url").value;
 
-function addVideo() {
-  const url = document.getElementById("videoUrl").value;
-  if (url) {
-    playlist.push(url);
-    renderPlaylist();
-  }
-}
-
-function renderPlaylist() {
-  const list = document.getElementById("playlist");
-  list.innerHTML = "";
-  playlist.forEach(video => {
-    const li = document.createElement("li");
-    li.textContent = video;
-    list.appendChild(li);
+  await fetch("/set", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ url })
   });
 }
 
-function startPlaylist() {
-  localStorage.setItem("playlist", JSON.stringify(playlist));
-  localStorage.setItem("index", 0);
+async function play() {
+  await fetch("/set", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ action: "play" })
+  });
 }
 
-function play() {
-  localStorage.setItem("action", "play");
-}
-
-function pause() {
-  localStorage.setItem("action", "pause");
-}
-
-function next() {
-  localStorage.setItem("action", "next");
+async function pause() {
+  await fetch("/set", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ action: "pause" })
+  });
 }
 </script>
 

@@ -1,82 +1,74 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>TV Player</title>
-
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TV Screen</title>
 
   <style>
-    html, body {
+    body {
       margin: 0;
-      padding: 0;
-      width: 100%;
-      height: 100%;
       background: black;
       overflow: hidden;
     }
 
     video {
-      position: fixed;
-      top: 0;
-      left: 0;
-
       width: 100vw;
       height: 100vh;
-
-      object-fit: cover;
-      background: black;
+      object-fit: cover; /* 🔥 full screen crop */
     }
   </style>
 </head>
-
 <body>
 
-<video id="video" playsinline></video>
+<video id="video" autoplay playsinline></video>
 
 <script>
 let video = document.getElementById("video");
 
-/* 🎬 PLAYLIST */
-let playlist = [
-  "https://www.w3schools.com/html/mov_bbb.mp4",
-  "https://media.w3.org/2010/05/sintel/trailer.mp4",
-  "https://media.w3.org/2010/05/bunny/trailer.mp4"
-];
+// 🔊 SOUND FIX
+video.muted = false;
+video.volume = 1;
 
-let index = 0;
-
-/* ▶️ PLAY FUNCTION */
-function playVideo(i) {
-  video.src = playlist[i];
-
-  // 🔊 IMPORTANT: sound allowed only after user interaction
-  video.muted = false;
-  video.volume = 1;
-
-  video.play()
-  .then(() => {
-    console.log("Playing video");
-  })
-  .catch(() => {
-    console.log("Tap screen once to start audio");
-  });
-}
-
-/* ⏭ AUTO NEXT */
-video.onended = () => {
-  index++;
-  if (index >= playlist.length) index = 0;
-  playVideo(index);
+// ⏭ AUTO NEXT
+video.onended = async () => {
+  await fetch("/next");
 };
 
-/* 🚀 FIRST PLAY (needs tap sometimes) */
-playVideo(index);
+// 🔁 LOAD VIDEO LOOP
+async function loadVideo() {
+  try {
+    const res = await fetch("/get");
+    const data = await res.json();
 
-/* 👇 FIX FOR AUDIO BLOCK */
-document.body.addEventListener("click", () => {
-  video.play();
-});
+    console.log("DATA:", data); // debug
+
+    if (data.url && video.src !== data.url) {
+      video.src = data.url;
+
+      video.play()
+      .then(() => {
+        console.log("Playing...");
+      })
+      .catch(() => {
+        console.log("Click once on TV screen");
+      });
+    }
+
+    if (data.isPlaying) {
+      video.play();
+    } else {
+      video.pause();
+    }
+
+  } catch (err) {
+    console.log("Error:", err);
+  }
+
+  setTimeout(loadVideo, 1000);
+}
+
+loadVideo();
 </script>
 
 </body>
 </html>
+

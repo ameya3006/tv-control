@@ -3,72 +3,78 @@
 <head>
   <title>TV Screen</title>
 
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <style>
-    body {
+    html, body {
       margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
       background: black;
       overflow: hidden;
     }
 
-    video {
+    /* 🔥 FULL SCREEN CONTAINER */
+    .container {
+      position: fixed;
+      top: 0;
+      left: 0;
       width: 100vw;
       height: 100vh;
-      object-fit: cover; /* 🔥 full screen crop */
+      background: black;
+    }
+
+    /* 🎬 VIDEO FIX */
+    video {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;  /* 🔥 horizontal proper view */
+      background: black;
     }
   </style>
 </head>
+
 <body>
 
-<video id="video" autoplay playsinline></video>
+<div class="container">
+  <video id="video" autoplay playsinline></video>
+</div>
 
 <script>
 let video = document.getElementById("video");
 
-// 🔊 SOUND FIX
-video.muted = false;
-video.volume = 1;
+/* 🎬 PLAYLIST */
+let playlist = [
+  "https://www.w3schools.com/html/mov_bbb.mp4",
+  "https://media.w3.org/2010/05/sintel/trailer.mp4",
+  "https://media.w3.org/2010/05/bunny/trailer.mp4"
+];
 
-// ⏭ AUTO NEXT
-video.onended = async () => {
-  await fetch("/next");
-};
+let index = 0;
 
-// 🔁 LOAD VIDEO LOOP
-async function loadVideo() {
-  try {
-    const res = await fetch("/get");
-    const data = await res.json();
+/* ▶️ PLAY VIDEO */
+function playVideo(i) {
+  video.src = playlist[i];
 
-    console.log("DATA:", data); // debug
+  video.muted = false;
+  video.volume = 1;
 
-    if (data.url && video.src !== data.url) {
-      video.src = data.url;
-
-      video.play()
-      .then(() => {
-        console.log("Playing...");
-      })
-      .catch(() => {
-        console.log("Click once on TV screen");
-      });
-    }
-
-    if (data.isPlaying) {
-      video.play();
-    } else {
-      video.pause();
-    }
-
-  } catch (err) {
-    console.log("Error:", err);
-  }
-
-  setTimeout(loadVideo, 1000);
+  video.play().catch(() => {
+    console.log("Tap screen once if audio blocked");
+  });
 }
 
-loadVideo();
+/* ⏭ AUTO NEXT */
+video.onended = () => {
+  index++;
+  if (index >= playlist.length) index = 0;
+  playVideo(index);
+};
+
+/* 🚀 START */
+playVideo(index);
 </script>
 
 </body>
 </html>
-

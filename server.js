@@ -8,57 +8,37 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
 let current = {
-  url: "",
+  url: "https://www.w3schools.com/html/mov_bbb.mp4",
   isPlaying: false
 };
 
-// 🔥 Playlist system
-let playlist = [];
-let index = 0;
-
-// 🎮 Control API
+// 🎮 update state
 app.post("/set", (req, res) => {
   const { url, action } = req.body;
 
-  if (url) current.url = url;
-
-  if (action === "play") current.isPlaying = true;
-  if (action === "pause") current.isPlaying = false;
-
-  res.send({ success: true });
-});
-
-// 🎵 Receive playlist
-app.post("/playlist", (req, res) => {
-  playlist = req.body.list || [];
-  index = 0;
-  console.log("Playlist:", playlist);
-  res.send({ success: true });
-});
-
-// ⏭ Auto next video
-app.get("/next", (req, res) => {
-  if (playlist.length === 0) {
-    return res.send({ success: false });
+  if (url) {
+    current.url = url;
   }
 
-  index++;
-  if (index >= playlist.length) index = 0;
+  if (action === "play") {
+    current.isPlaying = true;
+  }
 
-  current.url = playlist[index];
-  current.isPlaying = true;
+  if (action === "pause") {
+    current.isPlaying = false;
+  }
 
-  console.log("Next video:", current.url);
+  console.log("STATE:", current);
 
-  res.send({ success: true });
+  res.json({ success: true, current });
 });
 
-// 📺 TV fetch
+// 📺 TV fetch state
 app.get("/get", (req, res) => {
   res.json(current);
 });
 
-// Routes
+// default routes
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "control.html"));
 });

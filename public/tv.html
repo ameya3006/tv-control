@@ -1,46 +1,30 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>TV Player</title>
-
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Video</title>
 
   <style>
     html, body {
       margin: 0;
       padding: 0;
+      background: black;
       width: 100%;
       height: 100%;
-      background: black;
-      overflow: hidden;
     }
 
-    /* FULL SCREEN FIX */
     video {
-      position: fixed;
-      top: 0;
-      left: 0;
-
       width: 100vw;
       height: 100vh;
-
       object-fit: cover;
-      background: black;
     }
 
-    /* START BUTTON (IMPORTANT FOR AUDIO) */
-    #start {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: black;
-      color: white;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-size: 22px;
+    button {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      padding: 20px;
+      font-size: 20px;
       z-index: 10;
     }
   </style>
@@ -48,43 +32,23 @@
 
 <body>
 
-<div id="start">Tap to Start ▶</div>
+<button onclick="start()">START VIDEO</button>
 
-<video id="video" playsinline></video>
+<video id="v" playsinline></video>
 
 <script>
-let video = document.getElementById("video");
+let v = document.getElementById("v");
 
-let playlist = [
-  "https://www.w3schools.com/html/mov_bbb.mp4",
-  "https://media.w3.org/2010/05/sintel/trailer.mp4",
-  "https://media.w3.org/2010/05/bunny/trailer.mp4"
-];
+function start() {
+  v.src = "https://www.w3schools.com/html/mov_bbb.mp4";
 
-let index = 0;
+  v.muted = false;
+  v.volume = 1;
 
-/* PLAY VIDEO */
-function playVideo(i) {
-  video.src = playlist[i];
-  video.play();
+  v.play()
+  .then(()=> console.log("PLAYING"))
+  .catch(e => console.log("ERROR:", e));
 }
-
-/* AUTO NEXT */
-video.onended = () => {
-  index++;
-  if (index >= playlist.length) index = 0;
-  playVideo(index);
-};
-
-/* 🔥 IMPORTANT: USER CLICK REQUIRED FOR AUDIO */
-document.getElementById("start").addEventListener("click", () => {
-  document.getElementById("start").style.display = "none";
-
-  video.muted = false;
-  video.volume = 1;
-
-  playVideo(index);
-});
 </script>
 
 </body>

@@ -16,52 +16,50 @@ video {
   height: 100vh;
   object-fit: cover;
 }
-
-.tap {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  background: black;
-  color: white;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 22px;
-}
 </style>
 </head>
 
 <body>
 
-<div class="tap" id="tap">👉 Tap to Play with Sound</div>
-
-<video id="video" playsinline loop></video>
+<video id="video" playsinline></video>
 
 <script>
 const video = document.getElementById("video");
-const tap = document.getElementById("tap");
 
-video.src = "https://www.w3schools.com/html/mov_bbb.mp4";
+let lastState = {
+  url: "",
+  isPlaying: false
+};
 
-// IMPORTANT: force muted first (browser rule)
-video.muted = true;
+// 🔥 sync every 800ms (fast response)
+setInterval(async () => {
+  try {
+    const res = await fetch("/get");
+    const data = await res.json();
 
-function start() {
-  video.play().then(() => {
+    // URL change
+    if (data.url && data.url !== lastState.url) {
+      video.src = data.url;
+      video.load();
+      lastState.url = data.url;
+    }
 
-    // NOW enable sound AFTER play starts
-    setTimeout(() => {
-      video.muted = false;
-    }, 200);
+    // PLAY
+    if (data.isPlaying && !lastState.isPlaying) {
+      video.play().catch(()=>{});
+    }
 
-    tap.style.display = "none";
+    // PAUSE
+    if (!data.isPlaying && lastState.isPlaying) {
+      video.pause();
+    }
 
-  }).catch(err => {
-    console.log("Error:", err);
-  });
-}
+    lastState.isPlaying = data.isPlaying;
 
-tap.addEventListener("click", start);
+  } catch (err) {
+    console.log("sync error", err);
+  }
+}, 800);
 </script>
 
 </body>

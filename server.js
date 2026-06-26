@@ -4,15 +4,33 @@ const path = require("path");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// ✅ Static folder (IMPORTANT)
+app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
-// ✅ Routes fix (IMPORTANT)
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
+let current = {
+  url: "",
+  isPlaying: false
+};
+
+// 🎮 Control API
+app.post("/set", (req, res) => {
+  const { url, action } = req.body;
+
+  if (url) current.url = url;
+
+  if (action === "play") current.isPlaying = true;
+  if (action === "pause") current.isPlaying = false;
+
+  res.send({ success: true });
 });
 
-app.get("/control.html", (req, res) => {
+// 📺 TV fetch
+app.get("/get", (req, res) => {
+  res.json(current);
+});
+
+// Routes fix
+app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "control.html"));
 });
 
@@ -21,5 +39,5 @@ app.get("/tv.html", (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log("Server running on port " + PORT);
 });

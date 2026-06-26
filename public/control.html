@@ -1,91 +1,40 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>TV CONTROL</title>
+    <title>Control Panel</title>
 </head>
-
 <body>
 
-<h2>📺 TV CONTROL + PLAYLIST</h2>
+<h2>Add Video</h2>
 
-<!-- 🔥 MULTIPLE URL INPUT -->
-<textarea id="url" rows="6" cols="50"
-placeholder="Enter multiple video URLs (one per line)"></textarea>
+<input type="text" id="videoUrl" placeholder="Enter video URL">
+<button onclick="addVideo()">Add</button>
 
-<br><br>
-
-<button onclick="addVideo()">➕ Add Video</button>
-
-<br><br>
-
-<button onclick="playNow()">▶ Play</button>
-<button onclick="startPlaylist()">📂 Start Playlist</button>
-<button onclick="nextVideo()">⏭ Next</button>
-<button onclick="pauseAll()">⏸ Pause</button>
-<button onclick="enableSound()">🔊 Enable Sound</button>
-
-<h3>🎬 Playlist</h3>
-<ul id="list"></ul>
-
-<script src="/socket.io/socket.io.js"></script>
+<ul id="playlist"></ul>
 
 <script>
-const socket = io();
+let playlist = [];
 
-/* ➕ ADD MULTIPLE VIDEOS */
 function addVideo() {
+    let url = document.getElementById("videoUrl").value;
 
-    let input = document.getElementById("url").value;
+    if (url === "") {
+        alert("Enter URL first");
+        return;
+    }
 
-    let urls = input.split("\n");
+    playlist.push(url);
 
-    urls.forEach(url => {
-        if (url.trim() !== "") {
-            socket.emit("add-video", url.trim());
-        }
-    });
+    let li = document.createElement("li");
+    li.innerText = url;
 
-    document.getElementById("url").value = "";
+    document.getElementById("playlist").appendChild(li);
+
+    console.log("Added:", url);
+
+    // clear input
+    document.getElementById("videoUrl").value = "";
 }
-
-/* ▶ PLAY FIRST VIDEO */
-function playNow() {
-    socket.emit("play-start");
-}
-
-/* 📂 START PLAYLIST */
-function startPlaylist() {
-    socket.emit("play-start");
-}
-
-/* ⏭ NEXT */
-function nextVideo() {
-    socket.emit("next");
-}
-
-/* ⏸ PAUSE */
-function pauseAll() {
-    socket.emit("all-pause");
-}
-
-/* 🔊 SOUND */
-function enableSound() {
-    socket.emit("sound-on");
-}
-
-/* SHOW PLAYLIST */
-socket.on("playlist", (list) => {
-
-    let ul = document.getElementById("list");
-    ul.innerHTML = "";
-
-    list.forEach((v, i) => {
-        let li = document.createElement("li");
-        li.innerText = (i+1) + ". " + v;
-        ul.appendChild(li);
-    });
-
-});
 </script>
 
 </body>

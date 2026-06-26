@@ -12,6 +12,10 @@ let current = {
   isPlaying: false
 };
 
+// 🔥 Playlist system
+let playlist = [];
+let index = 0;
+
 // 🎮 Control API
 app.post("/set", (req, res) => {
   const { url, action } = req.body;
@@ -24,12 +28,37 @@ app.post("/set", (req, res) => {
   res.send({ success: true });
 });
 
+// 🎵 Receive playlist
+app.post("/playlist", (req, res) => {
+  playlist = req.body.list || [];
+  index = 0;
+  console.log("Playlist:", playlist);
+  res.send({ success: true });
+});
+
+// ⏭ Auto next video
+app.get("/next", (req, res) => {
+  if (playlist.length === 0) {
+    return res.send({ success: false });
+  }
+
+  index++;
+  if (index >= playlist.length) index = 0;
+
+  current.url = playlist[index];
+  current.isPlaying = true;
+
+  console.log("Next video:", current.url);
+
+  res.send({ success: true });
+});
+
 // 📺 TV fetch
 app.get("/get", (req, res) => {
   res.json(current);
 });
 
-// Routes fix
+// Routes
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "control.html"));
 });

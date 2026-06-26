@@ -31,10 +31,6 @@
       font-size: 16px;
     }
 
-    button:hover {
-      background: #00ccaa;
-    }
-
     ul {
       list-style: none;
       padding: 0;
@@ -47,8 +43,8 @@
       border-radius: 5px;
     }
   </style>
-
 </head>
+
 <body>
 
 <h1>🎮 TV Control Panel</h1>
@@ -71,7 +67,6 @@
 let playlist = [];
 let index = 0;
 
-// ➕ Add video
 function addVideo() {
   const url = document.getElementById("videoUrl").value;
   if (url) {
@@ -81,7 +76,6 @@ function addVideo() {
   }
 }
 
-// 📋 Show playlist
 function renderPlaylist() {
   const list = document.getElementById("playlist");
   list.innerHTML = "";
@@ -89,7 +83,6 @@ function renderPlaylist() {
     const li = document.createElement("li");
     li.textContent = video;
 
-    // 🔥 highlight current
     if (i === index) {
       li.style.background = "#00ffcc";
       li.style.color = "black";
@@ -99,11 +92,21 @@ function renderPlaylist() {
   });
 }
 
-// ▶ Start playlist
+// 🔥 UPDATED START (important)
 async function startPlaylist() {
+  if (playlist.length === 0) return;
+
   index = 0;
   renderPlaylist();
 
+  // send playlist to server
+  await fetch("/playlist", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ list: playlist })
+  });
+
+  // start first video
   await fetch("/set", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -114,7 +117,6 @@ async function startPlaylist() {
   });
 }
 
-// ▶ Play
 async function play() {
   await fetch("/set", {
     method: "POST",
@@ -123,7 +125,6 @@ async function play() {
   });
 }
 
-// ⏸ Pause
 async function pause() {
   await fetch("/set", {
     method: "POST",
@@ -132,7 +133,6 @@ async function pause() {
   });
 }
 
-// ⏭ Next
 async function next() {
   index++;
   if (index >= playlist.length) index = 0;

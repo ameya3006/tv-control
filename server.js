@@ -1,53 +1,49 @@
 const express = require("express");
-const path = require("path");
-
 const app = express();
-app.use(express.static(path.join(__dirname, "public")));
+
+app.use(express.static(__dirname));
+app.use(express.json());
 
 let playlist = [];
 let currentIndex = 0;
 let isPlaying = false;
 
-// ➤ Add video
+// ➕ Add song
 app.get("/add", (req, res) => {
-    const url = req.query.url;
+    let url = req.query.url;
     if (url) {
         playlist.push(url);
     }
-    res.send("Added");
+    res.json({ playlist });
 });
 
-// ➤ Get current video for TV
-app.get("/get", (req, res) => {
-    res.json({
-        url: playlist[currentIndex] || "",
-        isPlaying: isPlaying
-    });
-});
-
-// ➤ Controls from laptop
+// ▶️ Controls
 app.get("/control", (req, res) => {
-    const cmd = req.query.cmd;
-
-    if (cmd === "start") {
-        currentIndex = 0;
-        isPlaying = true;
-    }
+    let cmd = req.query.cmd;
 
     if (cmd === "play") isPlaying = true;
     if (cmd === "pause") isPlaying = false;
 
     if (cmd === "next") {
-        currentIndex = (currentIndex + 1) % playlist.length;
-        isPlaying = true;
+        if (currentIndex < playlist.length - 1) currentIndex++;
     }
 
-    res.send("OK");
+    if (cmd === "prev") {
+        if (currentIndex > 0) currentIndex--;
+    }
+
+    res.json({ playlist, currentIndex, isPlaying });
 });
 
-// ➤ Playlist view
-app.get("/playlist", (req, res) => {
-    res.json(playlist);
+// 📡 TV sync endpoint
+app.get("/get", (req, res) => {
+    res.json({
+        playlist,
+        currentIndex,
+        isPlaying
+    });
 });
 
-app.listen(3000, () => console.log("Server running"));
+app.listen(3000, () => {
+    console.log("Server running on port 3000");
+});

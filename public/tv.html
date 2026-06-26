@@ -6,26 +6,27 @@
 
 <body style="margin:0; background:black; text-align:center;">
 
-  <video id="video" width="100%" height="100%" controls autoplay></video>
+<video id="video" width="100%" height="100%" controls autoplay></video>
 
 <script>
 const server = "https://tv-control.onrender.com";
 
 async function loadVideo() {
-    try {
-        let res = await fetch(server + "/current");
-        let data = await res.json();
+    let res = await fetch(server + "/get");
+    let data = await res.json();
 
-        if (data.url) {
-            let video = document.getElementById("video");
+    let video = document.getElementById("video");
 
-            if (video.src !== data.url) {
-                video.src = data.url;
-                video.play();
-            }
+    if (data.url) {
+        if (video.src !== data.url) {
+            video.src = data.url;
         }
-    } catch (e) {
-        console.log("Error");
+
+        if (data.isPlaying) {
+            video.play();
+        } else {
+            video.pause();
+        }
     }
 }
 

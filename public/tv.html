@@ -15,23 +15,31 @@
       width: 100vw;
       height: 100vh;
       object-fit: cover;
-      pointer-events: none;
     }
   </style>
 </head>
 
 <body>
 
-<video id="video" autoplay playsinline muted></video>
+<video id="video" autoplay playsinline muted loop></video>
 
 <script>
-let video = document.getElementById("video");
+const video = document.getElementById("video");
 
 video.src = "https://www.w3schools.com/html/mov_bbb.mp4";
-video.muted = true;
-video.volume = 0;
 
-video.play().catch(()=>{});
+// IMPORTANT FIX
+video.muted = true;
+video.playsInline = true;
+
+video.load();
+
+setTimeout(() => {
+  video.play().catch(err => {
+    console.log("Play failed:", err);
+  });
+}, 300);
+
 </script>
 
 </body>

@@ -1,68 +1,29 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <title>Control Panel</title>
-</head>
 <body>
 
-<h2>🎮 TV Control Panel</h2>
+<h2>TV Control Panel</h2>
 
-<!-- ADD VIDEO -->
-<h3>Add Video</h3>
-<input type="text" id="videoUrl" placeholder="Enter video URL">
-<button onclick="addVideo()">Add</button>
+<input id="url" placeholder="Enter video URL" style="width:300px;">
+<button onclick="add()">Add</button>
 
 <br><br>
 
-<!-- CONTROLS -->
-<h3>Controls</h3>
-<button onclick="sendCommand('start')">Start Playlist</button>
-<button onclick="sendCommand('play')">Play</button>
-<button onclick="sendCommand('pause')">Pause</button>
-<button onclick="sendCommand('next')">Next</button>
-
-<br><br>
-
-<!-- PLAYLIST -->
-<h3>Playlist</h3>
-<ul id="playlist"></ul>
+<button onclick="send('play')">Play</button>
+<button onclick="send('pause')">Pause</button>
+<button onclick="send('next')">Next</button>
+<button onclick="send('prev')">Prev</button>
 
 <script>
-const server = "https://tv-control.onrender.com"; // tuzha server URL
-
-function addVideo() {
-    let url = document.getElementById("videoUrl").value;
-
-    fetch(server + "/add?url=" + encodeURIComponent(url))
-    .then(res => res.text())
-    .then(data => {
-        alert(data);
-        loadPlaylist();
-    });
+function add() {
+    let url = document.getElementById("url").value;
+    fetch("/add?url=" + encodeURIComponent(url));
+    alert("Added!");
 }
 
-function sendCommand(cmd) {
-    fetch(server + "/control?cmd=" + cmd)
-    .then(res => res.text())
-    .then(data => alert(data));
+function send(cmd) {
+    fetch("/control?cmd=" + cmd);
 }
-
-function loadPlaylist() {
-    fetch(server + "/playlist")
-    .then(res => res.json())
-    .then(data => {
-        let list = document.getElementById("playlist");
-        list.innerHTML = "";
-
-        data.forEach(video => {
-            let li = document.createElement("li");
-            li.innerText = video;
-            list.appendChild(li);
-        });
-    });
-}
-
-loadPlaylist();
 </script>
 
 </body>

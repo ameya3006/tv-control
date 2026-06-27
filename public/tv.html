@@ -21,7 +21,6 @@ video {
   object-fit: cover;
 }
 
-/* 🔥 MESSAGE STYLE */
 #msg {
   position: absolute;
   top: 50%;
@@ -40,7 +39,6 @@ video {
 <body>
 
 <video id="video" playsinline></video>
-
 <div id="msg"></div>
 
 <script>
@@ -48,48 +46,44 @@ const video = document.getElementById("video");
 const msg = document.getElementById("msg");
 
 let currentUrl = "";
-let isPlaying = false;
+let isEndedShown = false;
 
-// 🔥 AUDIO UNLOCK
-function unlockAudio() {
+// 🔊 audio unlock
+document.body.addEventListener("click", () => {
   video.muted = false;
-  video.volume = 1.0;
   video.play().catch(()=>{});
-}
-document.body.addEventListener("click", unlockAudio);
-document.body.addEventListener("touchstart", unlockAudio);
+});
 
 
-// 🔥 SHOW MESSAGE
+// 🔥 show message
 function showMessage(text) {
   msg.innerText = text;
   msg.style.display = "block";
 }
 
-// 🔥 HIDE MESSAGE
+// 🔥 hide message
 function hideMessage() {
   msg.style.display = "none";
 }
 
 
-// 🔥 SYNC LOOP
+// 🔥 SYNC
 setInterval(async () => {
   try {
     const res = await fetch("/get");
     const data = await res.json();
 
-    // 🔥 new video load
     if (data.url && currentUrl !== data.url) {
       currentUrl = data.url;
+      isEndedShown = false;
 
-      hideMessage(); // remove old message
+      hideMessage();
 
       video.pause();
       video.src = data.url;
       video.load();
     }
 
-    // PLAY
     if (data.isPlaying && video.paused) {
       video.play().catch(() => {
         video.muted = true;
@@ -97,12 +91,9 @@ setInterval(async () => {
       });
     }
 
-    // PAUSE
     if (!data.isPlaying && !video.paused) {
       video.pause();
     }
-
-    isPlaying = data.isPlaying;
 
   } catch (err) {
     console.log("SYNC ERROR", err);
@@ -110,16 +101,21 @@ setInterval(async () => {
 }, 1000);
 
 
-// 🔥 VIDEO END ALERT
-video.addEventListener("ended", () => {
-  console.log("Video Ended");
+// 🔥 END DETECTION (MAIN FIX)
+setInterval(() => {
+  if (
+    video.duration &&
+    video.currentTime >= video.duration - 0.3 &&
+    !isEndedShown
+  ) {
+    console.log("Video Finished");
 
-  // ✅ popup
-  alert("Video Finished! Click Next");
+    isEndedShown = true;
 
-  // ✅ screen message
-  showMessage("Video Finished - Click Next ▶");
-});
+    alert("Video Finished! Click Next");
+    showMessage("Video Finished - Click Next ▶");
+  }
+}, 500);
 
 </script>
 

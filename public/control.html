@@ -25,54 +25,52 @@
 
 <script>
 
-// ADD VIDEO
+// ✅ ADD ONLY ON BUTTON CLICK
 async function add() {
-  const url = document.getElementById("url").value;
+  const urlInput = document.getElementById("url");
+  const url = urlInput.value.trim();
 
   if (!url) return;
 
   await fetch("/add", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json"
+    },
     body: JSON.stringify({ url })
   });
 
-  document.getElementById("url").value = "";
-  load();
+  urlInput.value = "";
+  load(); // refresh list
 }
 
-// CONTROLS
+// ✅ CONTROLS
 function start() { fetch("/start", { method: "POST" }); }
 function play() { fetch("/play", { method: "POST" }); }
 function pause() { fetch("/pause", { method: "POST" }); }
 function next() { fetch("/next", { method: "POST" }); }
 
-// LOAD PLAYLIST
+// ✅ LOAD PLAYLIST (ONLY DISPLAY, NOT ADD)
 async function load() {
-  try {
-    const res = await fetch("/playlist");
-    const data = await res.json();
+  const res = await fetch("/playlist");
+  const data = await res.json();
 
-    const list = document.getElementById("list");
-    list.innerHTML = "";
+  const list = document.getElementById("list");
+  list.innerHTML = "";
 
-    if (data.length === 0) {
-      list.innerHTML = "<li>No videos</li>";
-      return;
-    }
-
-    data.forEach((v, i) => {
-      const li = document.createElement("li");
-      li.innerText = (i + 1) + ". " + v;
-      list.appendChild(li);
-    });
-
-  } catch (e) {
-    document.getElementById("list").innerHTML = "<li>Server error</li>";
+  if (data.length === 0) {
+    list.innerHTML = "<li>No videos</li>";
+    return;
   }
+
+  data.forEach((v, i) => {
+    const li = document.createElement("li");
+    li.innerText = (i + 1) + ". " + v;
+    list.appendChild(li);
+  });
 }
 
-// INIT
+// 🔥 ONLY LOAD LIST (NO ADD CALL HERE)
 load();
 
 </script>

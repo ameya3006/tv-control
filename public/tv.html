@@ -46,17 +46,17 @@ function unlockAudio() {
 document.body.addEventListener("click", unlockAudio);
 document.body.addEventListener("touchstart", unlockAudio);
 
-// default audio ON
+// default audio
 video.muted = false;
 video.volume = 1.0;
 
-// 🔥 SYNC LOOP
+// 🔥 SYNC LOOP (SERVER STATE)
 setInterval(async () => {
   try {
     const res = await fetch("/get");
     const data = await res.json();
 
-    // URL update
+    // URL change
     if (data.url && data.url !== lastState.url) {
       video.src = data.url;
       video.load();
@@ -66,14 +66,11 @@ setInterval(async () => {
     // PLAY
     if (data.isPlaying && !lastState.isPlaying) {
       video.muted = false;
-      video.volume = 1.0;
 
       const playPromise = video.play();
 
       if (playPromise !== undefined) {
-        playPromise.catch(err => {
-          console.log("Autoplay blocked:", err);
-
+        playPromise.catch(() => {
           // fallback
           video.muted = true;
           video.play();
@@ -92,6 +89,30 @@ setInterval(async () => {
     console.log("sync error", err);
   }
 }, 800);
+
+
+// 🔥🔥 AUTO NEXT VIDEO (MAIN FIX)
+video.addEventListener("ended", async () => {
+  console.log("Video ended → next");
+
+  try {
+    const res = await fetch("/next");
+    const data = await res.json();
+
+    if (data.url) {
+      video.src = data.url;
+      video.load();
+
+      video.play().catch(() => {
+        video.muted = true;
+        video.play();
+      });
+    }
+  } catch (err) {
+    console.log("Next error", err);
+  }
+});
+
 </script>
 
 </body>

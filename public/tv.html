@@ -33,27 +33,40 @@ const video = document.getElementById("video");
 let currentUrl = "";
 let sent = false;
 
-// 🔊 audio unlock
+// 🔊 unlock audio
 document.body.addEventListener("click", () => {
   video.muted = false;
   video.play().catch(()=>{});
 });
 
-// 🔥 SYNC
+// 🔥 SYNC LOOP
 setInterval(async () => {
   try {
     const res = await fetch("/get");
     const data = await res.json();
 
+    // 👉 NEW VIDEO LOAD (FIXED)
     if (data.url && currentUrl !== data.url) {
       currentUrl = data.url;
       sent = false;
 
+      console.log("NEW VIDEO:", currentUrl);
+
       video.pause();
-      video.src = data.url;
-      video.load();
+      video.src = "";
+
+      setTimeout(() => {
+        video.src = currentUrl;
+        video.load();
+
+        video.play().catch(() => {
+          video.muted = true;
+          video.play();
+        });
+      }, 200);
     }
 
+    // ▶ play/pause sync
     if (data.isPlaying && video.paused) {
       video.play().catch(() => {
         video.muted = true;
@@ -71,12 +84,12 @@ setInterval(async () => {
 }, 1000);
 
 
-// ✅ CORRECT END DETECT
+// ✅ VIDEO END DETECT
 video.addEventListener("ended", () => {
   if (!sent) {
     sent = true;
 
-    console.log("VIDEO ENDED CORRECT");
+    console.log("VIDEO ENDED");
 
     fetch("/ended", {
       method: "POST"

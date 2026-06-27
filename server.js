@@ -1,73 +1,59 @@
 const express = require("express");
-const http = require("http");
-const cors = require("cors");
-const path = require("path");
-const { Server } = require("socket.io");
-
 const app = express();
-const server = http.createServer(app);
 
-// middleware
-app.use(cors());
 app.use(express.json());
+app.use(express.static("public"));
 
-// ✅ IMPORTANT: serve HTML files (FIX for Cannot GET /tv.html)
-app.use(express.static(__dirname));
+let playlist = [];
+let current = -1;
+let isPlaying = false;
 
-// Socket.IO setup
-const io = new Server(server, {
-  cors: {
-    origin: "*"
+app.post("/add", (req, res) => {
+  const url = req.body.url;
+  if (url && url.trim() !== "") {
+    playlist.push(url);
   }
+  res.json({ playlist });
 });
 
-// Home route (optional)
-app.get("/", (req, res) => {
-  res.send("TV Control Server Running 🚀");
+app.post("/start", (req, res) => {
+  if (playlist.length > 0) {
+    current = 0;
+    isPlaying = true;
+  }
+  res.sendStatus(200);
 });
 
-// Socket logic
-io.on("connection", (socket) => {
-  console.log(`✅ Client connected: ${socket.id}`);
+app.post("/play", (req, res) => {
+  isPlaying = true;
+  res.sendStatus(200);
+});
 
-  // join room
-  socket.on("join-room", (roomId) => {
-    socket.join(roomId);
-    console.log(`📺 Joined room: ${roomId} | ${socket.id}`);
-  });
+app.post("/pause", (req, res) => {
+  isPlaying = false;
+  res.sendStatus(200);
+});
 
-  // load video
-  socket.on("load-video", (data) => {
-    console.log(`🎬 Load video in ${data.roomId}`);
-    io.to(data.roomId).emit("load-video", data.url);
-  });
+app.post("/next", (req, res) => {
+  if (playlist.length > 0) {
+    current = (current + 1) % playlist.length;
+  }
+  res.sendStatus(200);
+});
 
-  // play
-  socket.on("play", (roomId) => {
-    console.log(`▶ Play in ${roomId}`);
-    io.to(roomId).emit("play");
-  });
+app.get("/current", (req, res) => {
+  if (current === -1) {
+    return res.json({ url: "", isPlaying: false });
+  }
 
-  // pause
-  socket.on("pause", (roomId) => {
-    console.log(`⏸ Pause in ${roomId}`);
-    io.to(roomId).emit("pause");
-  });
-
-  // next
-  socket.on("next", (roomId) => {
-    console.log(`⏭ Next in ${roomId}`);
-    io.to(roomId).emit("next");
-  });
-
-  socket.on("disconnect", () => {
-    console.log(`❌ Client disconnected: ${socket.id}`);
+  res.json({
+    url: playlist[current],
+    isPlaying
   });
 });
 
-// start server
-const PORT = process.env.PORT || 3000;
-
-server.listen(PORT, () => {
-  console.log("🚀 Server running on port", PORT);
+app.get("/playlist", (req, res) => {
+  res.json(playlist);
 });
+
+app.listen(3000, () => console.log("Server running"));

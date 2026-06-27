@@ -5,59 +5,64 @@ app.use(express.json());
 app.use(express.static("public"));
 
 let playlist = [];
-let current = 0;
+let current = -1; // 🔥 important
 let isPlaying = false;
-let ended = false;
 
+// ✅ ADD VIDEO (NO REPLACE)
 app.post("/add", (req, res) => {
-  playlist.push(req.body.url);
-  res.sendStatus(200);
+  const url = req.body.url;
+
+  if (url && url.trim() !== "") {
+    playlist.push(url); // 🔥 always push
+  }
+
+  res.json({ playlist });
 });
 
+// ✅ START PLAYING
 app.post("/start", (req, res) => {
-  current = 0;
-  isPlaying = true;
-  ended = false;
+  if (playlist.length > 0) {
+    current = 0;
+    isPlaying = true;
+  }
   res.sendStatus(200);
 });
 
+// ✅ PLAY
 app.post("/play", (req, res) => {
   isPlaying = true;
   res.sendStatus(200);
 });
 
+// ✅ PAUSE
 app.post("/pause", (req, res) => {
   isPlaying = false;
   res.sendStatus(200);
 });
 
+// ✅ NEXT VIDEO
 app.post("/next", (req, res) => {
   if (playlist.length > 0) {
     current = (current + 1) % playlist.length;
-    ended = false;
   }
   res.sendStatus(200);
 });
 
+// ✅ CURRENT VIDEO
 app.get("/current", (req, res) => {
+  if (current === -1) {
+    return res.json({ url: "", isPlaying: false });
+  }
+
   res.json({
-    url: playlist[current] || "",
+    url: playlist[current],
     isPlaying
   });
 });
 
+// ✅ GET PLAYLIST
 app.get("/playlist", (req, res) => {
   res.json(playlist);
 });
 
-app.post("/ended", (req, res) => {
-  ended = true;
-  isPlaying = false;
-  res.sendStatus(200);
-});
-
-app.get("/status", (req, res) => {
-  res.json({ ended, isPlaying });
-});
-
-app.listen(3000, () => console.log("Server running"));
+app.listen(3000, () => console.log("Server running on 3000"));

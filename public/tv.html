@@ -1,65 +1,76 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>TV Screen</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <style>
-    html, body {
-      margin: 0;
-      height: 100%;
-      background: black;
-      overflow: hidden;
-    }
+<style>
+html, body {
+  margin: 0;
+  height: 100%;
+  background: black;
+  overflow: hidden;
+}
 
-    video {
-      width: 100vw;
-      height: 100vh;
-      object-fit: cover;
-    }
-  </style>
+/* portrait phone → force landscape */
+video {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100vh;
+  height: 100vw;
+  transform: translate(-50%, -50%) rotate(90deg);
+  object-fit: contain;
+  background: black;
+}
+
+/* landscape mode → normal */
+@media (orientation: landscape) {
+  video {
+    width: 100vw;
+    height: 100vh;
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+}
+</style>
 </head>
 
 <body>
 
-<video id="video" autoplay></video>
-
-<!-- Socket.IO -->
-<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+<video id="video" autoplay muted playsinline></video>
 
 <script>
-const socket = io("https://YOUR-RENDER-URL"); 
-// 👆 इथे तुझा Render backend URL टाक
-
-const roomId = "room1"; // same room for all TVs
-
 const video = document.getElementById("video");
+let currentUrl = "";
 
-// join room
-socket.emit("join-room", roomId);
-
-// LOAD VIDEO
-socket.on("load-video", (url) => {
-  video.src = url;
-  video.load();
-  video.play();
+// autoplay fix (tap for sound if needed)
+document.body.addEventListener("click", () => {
+  video.muted = false;
+  video.play().catch(()=>{});
 });
 
-// PLAY
-socket.on("play", () => {
-  video.play();
-});
+async function sync() {
+  try {
+    const res = await fetch(window.location.origin + "/current");
+    const data = await res.json();
 
-// PAUSE
-socket.on("pause", () => {
-  video.pause();
-});
+    if (data.url && data.url !== currentUrl) {
+      currentUrl = data.url;
+      video.src = currentUrl;
+      video.load();
+    }
 
-// NEXT (optional logic)
-socket.on("next", () => {
-  video.currentTime = 0;
-  video.play();
-});
+    if (data.isPlaying) {
+      video.play().catch(()=>{});
+    } else {
+      video.pause();
+    }
+
+  } catch (e) {
+    console.log("Error:", e);
+  }
+}
+
+setInterval(sync, 1500);
 </script>
 
 </body>

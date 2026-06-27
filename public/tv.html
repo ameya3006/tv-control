@@ -11,7 +11,6 @@ html, body {
   overflow: hidden;
 }
 
-/* 🔥 LANDSCAPE FORCE */
 video {
   position: absolute;
   top: 50%;
@@ -31,12 +30,11 @@ video {
 <script>
 const video = document.getElementById("video");
 
-let lastState = {
-  url: "",
-  isPlaying: false
-};
+// 🔥 current tracking
+let currentUrl = "";
+let isPlaying = false;
 
-// 🔥 AUDIO UNLOCK (mobile fix)
+// 🔥 AUDIO UNLOCK
 function unlockAudio() {
   video.muted = false;
   video.volume = 1.0;
@@ -46,20 +44,25 @@ function unlockAudio() {
 document.body.addEventListener("click", unlockAudio);
 document.body.addEventListener("touchstart", unlockAudio);
 
-// 🔥 SYNC LOOP
+
+// 🔥 SYNC LOOP (SAFE VERSION)
 setInterval(async () => {
   try {
     const res = await fetch("/get");
     const data = await res.json();
 
-    // 🔥 URL CHANGE FIX (important)
-    if (data.url && data.url !== video.src) {
+    // ✅ URL change only if really different
+    if (data.url && currentUrl !== data.url) {
+      console.log("Loading new video:", data.url);
+
+      currentUrl = data.url;
+
       video.pause();
       video.src = data.url;
       video.load();
     }
 
-    // PLAY
+    // ✅ PLAY
     if (data.isPlaying && video.paused) {
       video.play().catch(() => {
         video.muted = true;
@@ -67,20 +70,20 @@ setInterval(async () => {
       });
     }
 
-    // PAUSE
+    // ✅ PAUSE
     if (!data.isPlaying && !video.paused) {
       video.pause();
     }
 
-    lastState = data;
+    isPlaying = data.isPlaying;
 
   } catch (err) {
     console.log("SYNC ERROR", err);
   }
-}, 800);
+}, 1000); // 🔥 slightly slower = stable
 
 
-// 🔥 NEXT VIDEO FIX (MAIN)
+// 🔥 NEXT VIDEO (SUPER STABLE)
 video.addEventListener("ended", async () => {
   console.log("Video Ended → Next");
 
@@ -90,11 +93,11 @@ video.addEventListener("ended", async () => {
 
     if (!data.url) return;
 
-    // 🔥 overwrite bug avoid
-    lastState.url = data.url;
-    lastState.isPlaying = true;
+    // 🔥 update tracking
+    currentUrl = data.url;
+    isPlaying = true;
 
-    // 🔥 HARD RESET (important)
+    // 🔥 HARD RESET
     video.pause();
     video.removeAttribute("src");
     video.load();
@@ -107,7 +110,7 @@ video.addEventListener("ended", async () => {
         video.muted = true;
         video.play();
       });
-    }, 200);
+    }, 300);
 
   } catch (err) {
     console.log("NEXT ERROR", err);

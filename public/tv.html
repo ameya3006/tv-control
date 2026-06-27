@@ -2,6 +2,7 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <style>
 html, body {
   margin: 0;
@@ -13,7 +14,7 @@ html, body {
 video {
   width: 100vw;
   height: 100vh;
-  object-fit: contain; /* 🔥 correct ratio */
+  object-fit: contain;
   background: black;
 }
 </style>
@@ -21,27 +22,36 @@ video {
 
 <body>
 
-<video id="video" controls></video>
+<video id="video"></video>
 
 <script>
 const video = document.getElementById("video");
+
+let started = false; // 🔥 important fix
 
 async function sync() {
   const res = await fetch("/current");
   const data = await res.json();
 
-  if (data.url && video.src !== data.url) {
+  // ✅ URL change only when started
+  if (started && data.url && video.src !== data.url) {
     video.src = data.url;
   }
 
-  if (data.isPlaying) {
-    video.play().catch(() => {
-      console.log("Tap required for audio");
-    });
+  // ✅ Play only when started
+  if (started && data.isPlaying) {
+    video.play().catch(() => {});
   } else {
     video.pause();
   }
 }
+
+// 🔥 USER INTERACTION REQUIRED FOR AUDIO
+document.body.addEventListener("click", () => {
+  started = true;
+  video.muted = false;
+  video.play().catch(()=>{});
+});
 
 setInterval(sync, 1500);
 </script>

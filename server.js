@@ -1,79 +1,72 @@
 const express = require("express");
-const path = require("path");
-
 const app = express();
-const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
-app.use(express.static(path.join(__dirname, "public")));
+app.use(express.static("public"));
 
 let playlist = [];
-let currentIndex = 0;
+let current = 0;
+let isPlaying = false;
+let ended = false;
 
-let current = {
-  url: "",
-  isPlaying: false
-};
+// ➕ Add video
+app.post("/add", (req, res) => {
+  playlist.push(req.body.url);
+  res.sendStatus(200);
+});
 
-// 🎮 SET STATE / PLAYLIST
-app.post("/set", (req, res) => {
-  const { url, action, list } = req.body;
+// ▶ Start playlist
+app.post("/start", (req, res) => {
+  current = 0;
+  isPlaying = true;
+  ended = false;
+  res.sendStatus(200);
+});
 
-  // 👉 playlist set
-  if (list && Array.isArray(list)) {
-    playlist = list;
-    currentIndex = 0;
-    current.url = playlist[0] || "";
-    current.isPlaying = true;
+// ▶ Play
+app.post("/play", (req, res) => {
+  isPlaying = true;
+  res.sendStatus(200);
+});
+
+// ⏸ Pause
+app.post("/pause", (req, res) => {
+  isPlaying = false;
+  res.sendStatus(200);
+});
+
+// ⏭ Next
+app.post("/next", (req, res) => {
+  if (playlist.length > 0) {
+    current = (current + 1) % playlist.length;
+    ended = false;
   }
-
-  // 👉 single video
-  if (url) {
-    current.url = url;
-  }
-
-  if (action === "play") current.isPlaying = true;
-  if (action === "pause") current.isPlaying = false;
-
-  console.log("STATE:", current, "PLAYLIST:", playlist);
-
-  res.json({ success: true });
+  res.sendStatus(200);
 });
 
-// 📺 TV fetch
-app.get("/get", (req, res) => {
-  res.json(current);
+// 📺 Current video
+app.get("/current", (req, res) => {
+  res.json({
+    url: playlist[current] || "",
+    isPlaying
+  });
 });
 
-// 🔥 NEXT VIDEO (FINAL FIX)
-app.get("/next", (req, res) => {
-  if (playlist.length === 0) {
-    return res.json({ url: null });
-  }
-
-  currentIndex++;
-
-  if (currentIndex >= playlist.length) {
-    currentIndex = 0;
-  }
-
-  current.url = playlist[currentIndex];
-  current.isPlaying = true;
-
-  console.log("NEXT:", current.url);
-
-  res.json(current);
+// 📜 Playlist
+app.get("/playlist", (req, res) => {
+  res.json(playlist);
 });
 
-// routes
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "control.html"));
+// 🔥 Ended
+app.post("/ended", (req, res) => {
+  ended = true;
+  isPlaying = false;
+  res.sendStatus(200);
 });
 
-app.get("/tv.html", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "tv.html"));
+// 📊 Status
+app.get("/status", (req, res) => {
+  res.json({ ended, isPlaying });
 });
 
-app.listen(PORT, () => {
-  console.log("Server running on port " + PORT);
-});
+app.listen(3000, () => console.log("Server running"));

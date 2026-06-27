@@ -8,7 +8,6 @@ html, body {
   margin: 0;
   height: 100%;
   background: black;
-  overflow: hidden;
 }
 
 video {
@@ -16,69 +15,78 @@ video {
   height: 100vh;
   object-fit: cover;
 }
+
+#startBtn {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 20px 40px;
+  font-size: 20px;
+}
 </style>
 </head>
 
 <body>
 
+<button id="startBtn">START</button>
 <video id="video" playsinline></video>
 
 <script>
 const video = document.getElementById("video");
+const btn = document.getElementById("startBtn");
 
+let started = false;
 let lastUrl = "";
 
-// 🔥 USER TAP REQUIRED (important for TV)
-document.body.addEventListener("click", () => {
-  video.muted = false;
-});
+// 🔥 START (audio unlock)
+btn.onclick = () => {
+  started = true;
+  btn.style.display = "none";
 
-// 🔥 SYNC
+  video.muted = false;
+  video.play().catch(() => {
+    video.muted = true;
+    video.play();
+  });
+};
+
+// 🔥 FAST SYNC + CACHE BYPASS
 setInterval(async () => {
+  if (!started) return;
+
   try {
-    const res = await fetch("/get");
+    const res = await fetch("/get?t=" + Date.now());
     const data = await res.json();
 
-    // 👉 URL CHANGE (NEXT FIX)
-    if (data.url !== lastUrl) {
+    // 👉 NEXT VIDEO FIX
+    if (data.url && data.url !== lastUrl) {
       lastUrl = data.url;
 
       console.log("NEW VIDEO:", lastUrl);
 
       video.pause();
-
-      video.src = lastUrl;
+      video.src = "";
       video.load();
 
-      if (data.isPlaying) {
+      setTimeout(() => {
+        video.src = lastUrl + "?t=" + Date.now();
+        video.load();
+
         video.play().catch(() => {
           video.muted = true;
           video.play();
         });
-      }
+      }, 200);
     }
 
-    // ▶ play/pause control
-    if (data.isPlaying && video.paused) {
-      video.play().catch(() => {
-        video.muted = true;
-        video.play();
-      });
-    }
-
-    if (!data.isPlaying && !video.paused) {
-      video.pause();
-    }
-
-  } catch (err) {
-    console.log(err);
+  } catch (e) {
+    console.log(e);
   }
-}, 1000);
+}, 500);
 
-
-// ✅ END DETECT
+// END
 video.addEventListener("ended", () => {
-  console.log("ENDED");
   fetch("/ended", { method: "POST" });
 });
 </script>

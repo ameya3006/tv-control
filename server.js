@@ -15,54 +15,63 @@ let current = {
   isPlaying: false
 };
 
-// 🎮 SET STATE / PLAYLIST
-app.post("/set", (req, res) => {
-  const { url, action, list } = req.body;
+let videoEnded = false;
 
-  // 👉 playlist set
+// 🔥 SET PLAYLIST / CONTROL
+app.post("/set", (req, res) => {
+  const { list, url, action } = req.body;
+
   if (list && Array.isArray(list)) {
     playlist = list;
     currentIndex = 0;
     current.url = playlist[0] || "";
     current.isPlaying = true;
+    videoEnded = false;
   }
 
-  // 👉 single video
-  if (url) {
-    current.url = url;
-  }
+  if (url) current.url = url;
 
   if (action === "play") current.isPlaying = true;
   if (action === "pause") current.isPlaying = false;
 
-  console.log("STATE:", current, "PLAYLIST:", playlist);
-
   res.json({ success: true });
 });
 
-// 📺 TV fetch
+// 📺 TV GET
 app.get("/get", (req, res) => {
   res.json(current);
 });
 
-// 🔥 NEXT VIDEO (FINAL FIX)
+// 🔥 NEXT
 app.get("/next", (req, res) => {
   if (playlist.length === 0) {
     return res.json({ url: null });
   }
 
-  currentIndex++;
-
-  if (currentIndex >= playlist.length) {
-    currentIndex = 0;
-  }
+  currentIndex = (currentIndex + 1) % playlist.length;
 
   current.url = playlist[currentIndex];
   current.isPlaying = true;
+  videoEnded = false;
 
   console.log("NEXT:", current.url);
 
   res.json(current);
+});
+
+// 🔥 VIDEO ENDED (TV → SERVER)
+app.post("/ended", (req, res) => {
+  videoEnded = true;
+  console.log("VIDEO ENDED");
+  res.json({ success: true });
+});
+
+// 🔥 STATUS (CONTROL)
+app.get("/status", (req, res) => {
+  res.json({
+    ended: videoEnded,
+    current: current
+  });
 });
 
 // routes

@@ -1,153 +1,41 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>TV Control Panel</title>
-
-  <style>
-    body {
-      font-family: Arial;
-      background: #111;
-      color: white;
-      text-align: center;
-    }
-
-    input {
-      padding: 12px;
-      width: 60%;
-      margin: 10px;
-      border-radius: 5px;
-      border: none;
-    }
-
-    button {
-      padding: 12px 20px;
-      margin: 5px;
-      border: none;
-      background: #00ffcc;
-      color: black;
-      font-weight: bold;
-      cursor: pointer;
-      border-radius: 5px;
-      font-size: 16px;
-    }
-
-    ul {
-      list-style: none;
-      padding: 0;
-    }
-
-    li {
-      margin: 8px;
-      padding: 8px;
-      background: #222;
-      border-radius: 5px;
-    }
-  </style>
+  <title>Control Panel</title>
 </head>
 
 <body>
 
-<h1>🎮 TV Control Panel</h1>
+<h2>📱 Control Panel</h2>
 
-<h2>Add Video</h2>
-<input type="text" id="videoUrl" placeholder="Enter video URL">
-<br>
-<button onclick="addVideo()">➕ Add</button>
+<button onclick="next()">Next ▶</button>
 
-<h2>Controls</h2>
-<button onclick="startPlaylist()">▶ Start</button>
-<button onclick="play()">▶ Play</button>
-<button onclick="pause()">⏸ Pause</button>
-<button onclick="next()">⏭ Next</button>
-
-<h2>Playlist</h2>
-<ul id="playlist"></ul>
+<h3 id="status">Loading...</h3>
 
 <script>
-let playlist = [];
-let index = 0;
 
-function addVideo() {
-  const url = document.getElementById("videoUrl").value;
-  if (url) {
-    playlist.push(url);
-    renderPlaylist();
-    document.getElementById("videoUrl").value = "";
-  }
+// 🔥 NEXT BUTTON
+function next() {
+  fetch("/next");
 }
 
-function renderPlaylist() {
-  const list = document.getElementById("playlist");
-  list.innerHTML = "";
-  playlist.forEach((video, i) => {
-    const li = document.createElement("li");
-    li.textContent = video;
+// 🔥 STATUS CHECK
+setInterval(async () => {
+  try {
+    const res = await fetch("/status");
+    const data = await res.json();
 
-    if (i === index) {
-      li.style.background = "#00ffcc";
-      li.style.color = "black";
+    if (data.ended) {
+      document.getElementById("status").innerText = "⚠️ Video Finished! Click Next";
+    } else {
+      document.getElementById("status").innerText = "▶ Playing...";
     }
 
-    list.appendChild(li);
-  });
-}
+  } catch (err) {
+    console.log(err);
+  }
+}, 1000);
 
-// 🔥 UPDATED START (important)
-async function startPlaylist() {
-  if (playlist.length === 0) return;
-
-  index = 0;
-  renderPlaylist();
-
-  // send playlist to server
-  await fetch("/playlist", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ list: playlist })
-  });
-
-  // start first video
-  await fetch("/set", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      url: playlist[index],
-      action: "play"
-    })
-  });
-}
-
-async function play() {
-  await fetch("/set", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ action: "play" })
-  });
-}
-
-async function pause() {
-  await fetch("/set", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ action: "pause" })
-  });
-}
-
-async function next() {
-  index++;
-  if (index >= playlist.length) index = 0;
-
-  renderPlaylist();
-
-  await fetch("/set", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      url: playlist[index],
-      action: "play"
-    })
-  });
-}
 </script>
 
 </body>

@@ -5,6 +5,13 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
+
+// 🔥 CACHE OFF (Render fix)
+app.use((req, res, next) => {
+  res.set("Cache-Control", "no-store");
+  next();
+});
+
 app.use(express.static(path.join(__dirname, "public")));
 
 let playlist = [
@@ -17,17 +24,17 @@ let currentIndex = 0;
 
 let current = {
   url: playlist[0],
-  isPlaying: true
+  isPlaying: false // ❗ autoplay OFF
 };
 
 let videoEnded = false;
 
-// 📺 TV GET
+// 📺 TV
 app.get("/get", (req, res) => {
   res.json(current);
 });
 
-// ▶ NEXT VIDEO
+// ▶ NEXT
 app.get("/next", (req, res) => {
   currentIndex = (currentIndex + 1) % playlist.length;
 
@@ -40,19 +47,15 @@ app.get("/next", (req, res) => {
   res.json(current);
 });
 
-// 🎬 VIDEO ENDED
+// 🎬 ENDED
 app.post("/ended", (req, res) => {
   videoEnded = true;
-  console.log("VIDEO ENDED");
   res.json({ success: true });
 });
 
 // 📱 STATUS
 app.get("/status", (req, res) => {
-  res.json({
-    ended: videoEnded,
-    current: current
-  });
+  res.json({ ended: videoEnded });
 });
 
 // routes
@@ -65,5 +68,5 @@ app.get("/tv.html", (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log("Server running on port " + PORT);
+  console.log("Running on port " + PORT);
 });

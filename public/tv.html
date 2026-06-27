@@ -20,52 +20,24 @@ video {
   transform: translate(-50%, -50%) rotate(90deg);
   object-fit: cover;
 }
-
-#msg {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  color: white;
-  font-size: 28px;
-  background: rgba(0,0,0,0.7);
-  padding: 20px;
-  border-radius: 10px;
-  display: none;
-}
 </style>
 </head>
 
 <body>
 
 <video id="video" playsinline></video>
-<div id="msg"></div>
 
 <script>
 const video = document.getElementById("video");
-const msg = document.getElementById("msg");
 
 let currentUrl = "";
-let isEndedShown = false;
+let endedSent = false;
 
-// 🔊 audio unlock
+// 🔊 unlock audio
 document.body.addEventListener("click", () => {
   video.muted = false;
   video.play().catch(()=>{});
 });
-
-
-// 🔥 show message
-function showMessage(text) {
-  msg.innerText = text;
-  msg.style.display = "block";
-}
-
-// 🔥 hide message
-function hideMessage() {
-  msg.style.display = "none";
-}
-
 
 // 🔥 SYNC
 setInterval(async () => {
@@ -75,9 +47,7 @@ setInterval(async () => {
 
     if (data.url && currentUrl !== data.url) {
       currentUrl = data.url;
-      isEndedShown = false;
-
-      hideMessage();
+      endedSent = false;
 
       video.pause();
       video.src = data.url;
@@ -96,24 +66,23 @@ setInterval(async () => {
     }
 
   } catch (err) {
-    console.log("SYNC ERROR", err);
+    console.log(err);
   }
 }, 1000);
 
 
-// 🔥 END DETECTION (MAIN FIX)
+// 🔥 END DETECT (TIME BASED)
 setInterval(() => {
   if (
     video.duration &&
     video.currentTime >= video.duration - 0.3 &&
-    !isEndedShown
+    !endedSent
   ) {
-    console.log("Video Finished");
+    endedSent = true;
 
-    isEndedShown = true;
+    console.log("VIDEO ENDED → SERVER");
 
-    alert("Video Finished! Click Next");
-    showMessage("Video Finished - Click Next ▶");
+    fetch("/ended", { method: "POST" });
   }
 }, 500);
 

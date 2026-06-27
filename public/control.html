@@ -6,9 +6,9 @@
 
 <body>
 
-<h2>📱 TV Control Panel</h2>
+<h2>📱 Control Panel</h2>
 
-<input id="url" placeholder="Enter video URL">
+<input id="url" placeholder="Paste video URL">
 <button onclick="add()">Add</button>
 
 <br><br>
@@ -18,9 +18,9 @@
 <button onclick="pause()">Pause ⏸</button>
 <button onclick="next()">Next ⏭</button>
 
-<h3 id="status">Loading...</h3>
+<br><br>
 
-<h3>Playlist</h3>
+<h3>📂 My Playlist</h3>
 <ul id="list"></ul>
 
 <script>
@@ -38,29 +38,14 @@ async function add() {
   });
 
   document.getElementById("url").value = "";
-
-  load(); // 🔥 IMPORTANT
+  load();
 }
 
-// START
-function start() {
-  fetch("/start", { method: "POST" });
-}
-
-// PLAY
-function play() {
-  fetch("/play", { method: "POST" });
-}
-
-// PAUSE
-function pause() {
-  fetch("/pause", { method: "POST" });
-}
-
-// NEXT
-function next() {
-  fetch("/next", { method: "POST" });
-}
+// CONTROLS
+function start() { fetch("/start", { method: "POST" }); }
+function play() { fetch("/play", { method: "POST" }); }
+function pause() { fetch("/pause", { method: "POST" }); }
+function next() { fetch("/next", { method: "POST" }); }
 
 // LOAD PLAYLIST
 async function load() {
@@ -87,25 +72,7 @@ async function load() {
   }
 }
 
-// STATUS
-setInterval(async () => {
-  try {
-    const res = await fetch("/status");
-    const data = await res.json();
-
-    if (data.ended) {
-      document.getElementById("status").innerText = "⚠️ Finished!";
-    } else if (data.isPlaying) {
-      document.getElementById("status").innerText = "▶ Playing...";
-    } else {
-      document.getElementById("status").innerText = "⏸ Paused";
-    }
-  } catch {
-    document.getElementById("status").innerText = "Server error";
-  }
-}, 1000);
-
-// INIT LOAD
+// INIT
 load();
 
 </script>

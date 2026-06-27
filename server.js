@@ -7,15 +7,26 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
+let playlist = [];
+let currentIndex = 0;
+
 let current = {
-  url: "https://www.w3schools.com/html/mov_bbb.mp4",
+  url: "",
   isPlaying: false
 };
 
 // 🎮 update state
 app.post("/set", (req, res) => {
-  const { url, action } = req.body;
+  const { url, action, list } = req.body;
 
+  // 👉 playlist set
+  if (list && Array.isArray(list)) {
+    playlist = list;
+    currentIndex = 0;
+    current.url = playlist[0] || "";
+  }
+
+  // 👉 single video set
   if (url) {
     current.url = url;
   }
@@ -28,14 +39,31 @@ app.post("/set", (req, res) => {
     current.isPlaying = false;
   }
 
-  console.log("STATE:", current);
+  console.log("STATE:", current, "PLAYLIST:", playlist);
 
-  res.json({ success: true, current });
+  res.json({ success: true });
 });
 
 // 📺 TV fetch state
 app.get("/get", (req, res) => {
   res.json(current);
+});
+
+// 🔥 NEXT VIDEO
+app.get("/next", (req, res) => {
+  if (playlist.length === 0) {
+    return res.json({ url: null });
+  }
+
+  currentIndex++;
+
+  if (currentIndex >= playlist.length) {
+    currentIndex = 0; // loop
+  }
+
+  current.url = playlist[currentIndex];
+
+  res.json({ url: current.url });
 });
 
 // default routes

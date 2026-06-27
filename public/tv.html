@@ -30,9 +30,9 @@ video {
 <script>
 const video = document.getElementById("video");
 
-// 🔥 current tracking
 let currentUrl = "";
 let isPlaying = false;
+let nextCalled = false;
 
 // 🔥 AUDIO UNLOCK
 function unlockAudio() {
@@ -40,29 +40,25 @@ function unlockAudio() {
   video.volume = 1.0;
   video.play().catch(()=>{});
 }
-
 document.body.addEventListener("click", unlockAudio);
 document.body.addEventListener("touchstart", unlockAudio);
 
 
-// 🔥 SYNC LOOP (SAFE VERSION)
+// 🔥 SYNC LOOP
 setInterval(async () => {
   try {
     const res = await fetch("/get");
     const data = await res.json();
 
-    // ✅ URL change only if really different
     if (data.url && currentUrl !== data.url) {
-      console.log("Loading new video:", data.url);
-
       currentUrl = data.url;
+      nextCalled = false; // reset
 
       video.pause();
       video.src = data.url;
       video.load();
     }
 
-    // ✅ PLAY
     if (data.isPlaying && video.paused) {
       video.play().catch(() => {
         video.muted = true;
@@ -70,7 +66,6 @@ setInterval(async () => {
       });
     }
 
-    // ✅ PAUSE
     if (!data.isPlaying && !video.paused) {
       video.pause();
     }
@@ -80,12 +75,15 @@ setInterval(async () => {
   } catch (err) {
     console.log("SYNC ERROR", err);
   }
-}, 1000); // 🔥 slightly slower = stable
+}, 1000);
 
 
-// 🔥 NEXT VIDEO (SUPER STABLE)
-video.addEventListener("ended", async () => {
-  console.log("Video Ended → Next");
+// 🔥 NEXT FUNCTION (COMMON)
+async function playNext() {
+  if (nextCalled) return;
+  nextCalled = true;
+
+  console.log("Calling NEXT API...");
 
   try {
     const res = await fetch("/next");
@@ -93,11 +91,8 @@ video.addEventListener("ended", async () => {
 
     if (!data.url) return;
 
-    // 🔥 update tracking
     currentUrl = data.url;
-    isPlaying = true;
 
-    // 🔥 HARD RESET
     video.pause();
     video.removeAttribute("src");
     video.load();
@@ -115,7 +110,27 @@ video.addEventListener("ended", async () => {
   } catch (err) {
     console.log("NEXT ERROR", err);
   }
+}
+
+
+// ✅ METHOD 1: ended event
+video.addEventListener("ended", () => {
+  console.log("ENDED EVENT");
+  playNext();
 });
+
+
+// ✅ METHOD 2: fallback (important 🔥)
+setInterval(() => {
+  if (
+    video.duration &&
+    video.currentTime >= video.duration - 0.5
+  ) {
+    console.log("TIME DETECT END");
+    playNext();
+  }
+}, 500);
+
 </script>
 
 </body>

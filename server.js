@@ -16,14 +16,18 @@ const io = new Server(server, {
   }
 });
 
-// Store rooms (TV groups)
+// Simple health check route
+app.get("/", (req, res) => {
+  res.send("Socket.IO Server Running 🚀");
+});
+
+// Track rooms (optional use)
 const rooms = {};
 
-// When client connects
 io.on("connection", (socket) => {
-  console.log("User connected:", socket.id);
+  console.log("✅ Client connected:", socket.id);
 
-  // JOIN ROOM (TV or Controller)
+  // JOIN ROOM
   socket.on("join-room", (roomId) => {
     socket.join(roomId);
 
@@ -33,42 +37,42 @@ io.on("connection", (socket) => {
 
     rooms[roomId].push(socket.id);
 
-    console.log(`Socket ${socket.id} joined room ${roomId}`);
-  });
-
-  // PLAY VIDEO
-  socket.on("play", (roomId) => {
-    io.to(roomId).emit("play");
-  });
-
-  // PAUSE VIDEO
-  socket.on("pause", (roomId) => {
-    io.to(roomId).emit("pause");
-  });
-
-  // NEXT VIDEO
-  socket.on("next", (roomId) => {
-    io.to(roomId).emit("next");
+    console.log(`📺 ${socket.id} joined room: ${roomId}`);
   });
 
   // LOAD VIDEO
   socket.on("load-video", (data) => {
-    // data = { roomId, url }
+    console.log("🎬 Load video:", data);
     io.to(data.roomId).emit("load-video", data.url);
   });
 
-  socket.on("disconnect", () => {
-    console.log("User disconnected:", socket.id);
+  // PLAY
+  socket.on("play", (roomId) => {
+    console.log("▶ Play in room:", roomId);
+    io.to(roomId).emit("play");
   });
-});
 
-// Test route
-app.get("/", (req, res) => {
-  res.send("Socket.IO Server Running 🚀");
+  // PAUSE
+  socket.on("pause", (roomId) => {
+    console.log("⏸ Pause in room:", roomId);
+    io.to(roomId).emit("pause");
+  });
+
+  // NEXT
+  socket.on("next", (roomId) => {
+    console.log("⏭ Next in room:", roomId);
+    io.to(roomId).emit("next");
+  });
+
+  socket.on("disconnect", () => {
+    console.log("❌ Client disconnected:", socket.id);
+  });
 });
 
 // Start server
 const PORT = process.env.PORT || 3000;
+
 server.listen(PORT, () => {
-  console.log("Server running on port", PORT);
+  console.log("🚀 Server running on port", PORT);
+  console.log("📡 Socket.IO Ready");
 });

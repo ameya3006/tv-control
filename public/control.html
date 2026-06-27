@@ -6,36 +6,53 @@
 
 <body>
 
-<h2>📱 Control Panel</h2>
+<h2>TV Control Panel</h2>
 
-<button onclick="next()">Next ▶</button>
+<!-- Add Video -->
+<input id="url" placeholder="Enter video URL">
+<button onclick="add()">Add</button>
 
-<h3 id="status">Loading...</h3>
+<br><br>
+
+<!-- Controls -->
+<button onclick="next()">Next</button>
+
+<h3>Playlist</h3>
+<ul id="list"></ul>
 
 <script>
+async function add() {
+  const url = document.getElementById("url").value;
 
-// ▶ NEXT
-function next() {
-  fetch("/next");
+  await fetch("/add", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ url })
+  });
+
+  document.getElementById("url").value = "";
+  load();
 }
 
-// 🔥 STATUS
-setInterval(async () => {
-  try {
-    const res = await fetch("/status");
-    const data = await res.json();
+async function next() {
+  await fetch("/next", { method: "POST" });
+}
 
-    if (data.ended) {
-      document.getElementById("status").innerText = "⚠️ Video Finished! Click Next";
-    } else {
-      document.getElementById("status").innerText = "▶ Playing...";
-    }
+async function load() {
+  const res = await fetch("/playlist");
+  const data = await res.json();
 
-  } catch (err) {
-    console.log(err);
-  }
-}, 1000);
+  const list = document.getElementById("list");
+  list.innerHTML = "";
 
+  data.forEach((v, i) => {
+    const li = document.createElement("li");
+    li.innerText = (i+1) + ". " + v;
+    list.appendChild(li);
+  });
+}
+
+load();
 </script>
 
 </body>

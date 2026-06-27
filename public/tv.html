@@ -2,18 +2,14 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <style>
 html, body {
   margin: 0;
   height: 100%;
   background: black;
-  overflow: hidden;
 }
 
-/* Full screen video */
 video {
-  position: absolute;
   width: 100vw;
   height: 100vh;
   object-fit: cover;
@@ -23,27 +19,31 @@ video {
 
 <body>
 
-<video id="video" autoplay muted playsinline></video>
+<video id="video" muted></video>
 
 <script>
 const video = document.getElementById("video");
 
-async function loadVideo() {
+async function sync() {
   const res = await fetch("/current");
   const data = await res.json();
 
   if (data.url && video.src !== data.url) {
     video.src = data.url;
+  }
+
+  if (data.isPlaying) {
     video.play().catch(()=>{});
+  } else {
+    video.pause();
   }
 }
 
-// keep checking for new video
-setInterval(loadVideo, 2000);
+setInterval(sync, 1500);
 
-// auto next when video ends
-video.addEventListener("ended", () => {
-  fetch("/ended", { method: "POST" });
+// 🔥 detect end
+video.addEventListener("ended", async () => {
+  await fetch("/ended", { method: "POST" });
 });
 </script>
 

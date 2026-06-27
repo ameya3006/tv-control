@@ -31,9 +31,9 @@ video {
 const video = document.getElementById("video");
 
 let currentUrl = "";
-let endedSent = false;
+let sent = false;
 
-// 🔊 unlock audio
+// 🔊 audio unlock
 document.body.addEventListener("click", () => {
   video.muted = false;
   video.play().catch(()=>{});
@@ -47,7 +47,7 @@ setInterval(async () => {
 
     if (data.url && currentUrl !== data.url) {
       currentUrl = data.url;
-      endedSent = false;
+      sent = false;
 
       video.pause();
       video.src = data.url;
@@ -71,21 +71,18 @@ setInterval(async () => {
 }, 1000);
 
 
-// 🔥 END DETECT (TIME BASED)
-setInterval(() => {
-  if (
-    video.duration &&
-    video.currentTime >= video.duration - 0.3 &&
-    !endedSent
-  ) {
-    endedSent = true;
+// ✅ CORRECT END DETECT
+video.addEventListener("ended", () => {
+  if (!sent) {
+    sent = true;
 
-    console.log("VIDEO ENDED → SERVER");
+    console.log("VIDEO ENDED CORRECT");
 
-    fetch("/ended", { method: "POST" });
+    fetch("/ended", {
+      method: "POST"
+    });
   }
-}, 500);
-
+});
 </script>
 
 </body>

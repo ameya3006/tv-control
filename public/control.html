@@ -1,67 +1,52 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>TV Control Panel</title>
+  <title>Control</title>
 </head>
 
 <body>
 
-<h2>📱 TV Control Panel</h2>
+<h2>📱 Control Panel</h2>
 
 <input id="url" placeholder="Enter video URL">
 <button onclick="add()">Add</button>
 
 <br><br>
 
-<button onclick="start()">Start ▶</button>
-<button onclick="play()">Play ▶</button>
-<button onclick="pause()">Pause ⏸</button>
-<button onclick="next()">Next ⏭</button>
+<button onclick="start()">Start</button>
+<button onclick="play()">Play</button>
+<button onclick="pause()">Pause</button>
+<button onclick="next()">Next</button>
 
-<br><br>
-
-<h3>📂 My Playlist</h3>
+<h3>Playlist</h3>
 <ul id="list"></ul>
 
 <script>
-
-// ✅ ADD ONLY ON BUTTON CLICK
 async function add() {
-  const urlInput = document.getElementById("url");
-  const url = urlInput.value.trim();
-
+  const url = document.getElementById("url").value.trim();
   if (!url) return;
 
   await fetch("/add", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
+    headers: {"Content-Type": "application/json"},
     body: JSON.stringify({ url })
   });
 
-  urlInput.value = "";
-  load(); // refresh list
+  document.getElementById("url").value = "";
+  load();
 }
 
-// ✅ CONTROLS
 function start() { fetch("/start", { method: "POST" }); }
 function play() { fetch("/play", { method: "POST" }); }
 function pause() { fetch("/pause", { method: "POST" }); }
 function next() { fetch("/next", { method: "POST" }); }
 
-// ✅ LOAD PLAYLIST (ONLY DISPLAY, NOT ADD)
 async function load() {
   const res = await fetch("/playlist");
   const data = await res.json();
 
   const list = document.getElementById("list");
   list.innerHTML = "";
-
-  if (data.length === 0) {
-    list.innerHTML = "<li>No videos</li>";
-    return;
-  }
 
   data.forEach((v, i) => {
     const li = document.createElement("li");
@@ -70,9 +55,7 @@ async function load() {
   });
 }
 
-// 🔥 ONLY LOAD LIST (NO ADD CALL HERE)
 load();
-
 </script>
 
 </body>

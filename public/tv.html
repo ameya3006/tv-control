@@ -22,7 +22,7 @@ video {
 
 <body>
 
-<video id="video" playsinline></video>
+<video id="video" autoplay muted playsinline></video>
 
 <script>
 const video = document.getElementById("video");
@@ -31,7 +31,7 @@ let currentUrl = "";
 
 async function sync() {
   try {
-    const res = await fetch("/current");
+    const res = await fetch(window.location.origin + "/current");
     const data = await res.json();
 
     if (data.url && data.url !== currentUrl) {
@@ -41,19 +41,13 @@ async function sync() {
     }
 
     if (data.isPlaying) {
-      video.muted = false;
-
-      video.play().catch(() => {
-        video.muted = true;
-        video.play().catch(()=>{});
-      });
-
+      video.play().catch(()=>{});
     } else {
       video.pause();
     }
 
   } catch (e) {
-    console.log("Server not reachable");
+    console.log("Error:", e);
   }
 }
 

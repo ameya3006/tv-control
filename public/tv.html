@@ -20,6 +20,20 @@ video {
   transform: translate(-50%, -50%) rotate(90deg);
   object-fit: cover;
 }
+
+/* 🔥 MESSAGE STYLE */
+#msg {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-size: 28px;
+  background: rgba(0,0,0,0.7);
+  padding: 20px;
+  border-radius: 10px;
+  display: none;
+}
 </style>
 </head>
 
@@ -27,12 +41,14 @@ video {
 
 <video id="video" playsinline></video>
 
+<div id="msg"></div>
+
 <script>
 const video = document.getElementById("video");
+const msg = document.getElementById("msg");
 
 let currentUrl = "";
 let isPlaying = false;
-let nextCalled = false;
 
 // 🔥 AUDIO UNLOCK
 function unlockAudio() {
@@ -44,21 +60,36 @@ document.body.addEventListener("click", unlockAudio);
 document.body.addEventListener("touchstart", unlockAudio);
 
 
+// 🔥 SHOW MESSAGE
+function showMessage(text) {
+  msg.innerText = text;
+  msg.style.display = "block";
+}
+
+// 🔥 HIDE MESSAGE
+function hideMessage() {
+  msg.style.display = "none";
+}
+
+
 // 🔥 SYNC LOOP
 setInterval(async () => {
   try {
     const res = await fetch("/get");
     const data = await res.json();
 
+    // 🔥 new video load
     if (data.url && currentUrl !== data.url) {
       currentUrl = data.url;
-      nextCalled = false; // reset
+
+      hideMessage(); // remove old message
 
       video.pause();
       video.src = data.url;
       video.load();
     }
 
+    // PLAY
     if (data.isPlaying && video.paused) {
       video.play().catch(() => {
         video.muted = true;
@@ -66,6 +97,7 @@ setInterval(async () => {
       });
     }
 
+    // PAUSE
     if (!data.isPlaying && !video.paused) {
       video.pause();
     }
@@ -78,58 +110,16 @@ setInterval(async () => {
 }, 1000);
 
 
-// 🔥 NEXT FUNCTION (COMMON)
-async function playNext() {
-  if (nextCalled) return;
-  nextCalled = true;
-
-  console.log("Calling NEXT API...");
-
-  try {
-    const res = await fetch("/next");
-    const data = await res.json();
-
-    if (!data.url) return;
-
-    currentUrl = data.url;
-
-    video.pause();
-    video.removeAttribute("src");
-    video.load();
-
-    setTimeout(() => {
-      video.src = data.url;
-      video.load();
-
-      video.play().catch(() => {
-        video.muted = true;
-        video.play();
-      });
-    }, 300);
-
-  } catch (err) {
-    console.log("NEXT ERROR", err);
-  }
-}
-
-
-// ✅ METHOD 1: ended event
+// 🔥 VIDEO END ALERT
 video.addEventListener("ended", () => {
-  console.log("ENDED EVENT");
-  playNext();
+  console.log("Video Ended");
+
+  // ✅ popup
+  alert("Video Finished! Click Next");
+
+  // ✅ screen message
+  showMessage("Video Finished - Click Next ▶");
 });
-
-
-// ✅ METHOD 2: fallback (important 🔥)
-setInterval(() => {
-  if (
-    video.duration &&
-    video.currentTime >= video.duration - 0.5
-  ) {
-    console.log("TIME DETECT END");
-    playNext();
-  }
-}, 500);
 
 </script>
 

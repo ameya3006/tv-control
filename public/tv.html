@@ -8,87 +8,129 @@ html, body {
   margin: 0;
   height: 100%;
   background: black;
+  overflow: hidden;
 }
 
 video {
-  width: 100vw;
-  height: 100vh;
-  object-fit: cover;
-}
-
-#startBtn {
   position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%);
-  padding: 20px 40px;
-  font-size: 20px;
+  width: 100vh;
+  height: 100vw;
+  transform: translate(-50%, -50%) rotate(90deg);
+  object-fit: cover;
 }
 </style>
 </head>
 
 <body>
 
-<button id="startBtn">START</button>
 <video id="video" playsinline></video>
 
 <script>
 const video = document.getElementById("video");
-const btn = document.getElementById("startBtn");
 
-let started = false;
-let lastUrl = "";
+let currentUrl = "";
+let isPlaying = false;
+let nextCalled = false;
 
-// 🔥 START (audio unlock)
-btn.onclick = () => {
-  started = true;
-  btn.style.display = "none";
-
+// 🔥 AUDIO UNLOCK
+function unlockAudio() {
   video.muted = false;
-  video.play().catch(() => {
-    video.muted = true;
-    video.play();
-  });
-};
+  video.volume = 1.0;
+  video.play().catch(()=>{});
+}
+document.body.addEventListener("click", unlockAudio);
+document.body.addEventListener("touchstart", unlockAudio);
 
-// 🔥 FAST SYNC + CACHE BYPASS
+
+// 🔥 SYNC LOOP
 setInterval(async () => {
-  if (!started) return;
-
   try {
-    const res = await fetch("/get?t=" + Date.now());
+    const res = await fetch("/get");
     const data = await res.json();
 
-    // 👉 NEXT VIDEO FIX
-    if (data.url && data.url !== lastUrl) {
-      lastUrl = data.url;
-
-      console.log("NEW VIDEO:", lastUrl);
+    if (data.url && currentUrl !== data.url) {
+      currentUrl = data.url;
+      nextCalled = false; // reset
 
       video.pause();
-      video.src = "";
+      video.src = data.url;
       video.load();
-
-      setTimeout(() => {
-        video.src = lastUrl + "?t=" + Date.now();
-        video.load();
-
-        video.play().catch(() => {
-          video.muted = true;
-          video.play();
-        });
-      }, 200);
     }
 
-  } catch (e) {
-    console.log(e);
+    if (data.isPlaying && video.paused) {
+      video.play().catch(() => {
+        video.muted = true;
+        video.play();
+      });
+    }
+
+    if (!data.isPlaying && !video.paused) {
+      video.pause();
+    }
+
+    isPlaying = data.isPlaying;
+
+  } catch (err) {
+    console.log("SYNC ERROR", err);
+  }
+}, 1000);
+
+
+// 🔥 NEXT FUNCTION (COMMON)
+async function playNext() {
+  if (nextCalled) return;
+  nextCalled = true;
+
+  console.log("Calling NEXT API...");
+
+  try {
+    const res = await fetch("/next");
+    const data = await res.json();
+
+    if (!data.url) return;
+
+    currentUrl = data.url;
+
+    video.pause();
+    video.removeAttribute("src");
+    video.load();
+
+    setTimeout(() => {
+      video.src = data.url;
+      video.load();
+
+      video.play().catch(() => {
+        video.muted = true;
+        video.play();
+      });
+    }, 300);
+
+  } catch (err) {
+    console.log("NEXT ERROR", err);
+  }
+}
+
+
+// ✅ METHOD 1: ended event
+video.addEventListener("ended", () => {
+  console.log("ENDED EVENT");
+  playNext();
+});
+
+
+// ✅ METHOD 2: fallback (important 🔥)
+setInterval(() => {
+  if (
+    video.duration &&
+    video.currentTime >= video.duration - 0.5
+  ) {
+    console.log("TIME DETECT END");
+    playNext();
   }
 }, 500);
 
-// END
-video.addEventListener("ended", () => {
-  fetch("/ended", { method: "POST" });
-});
 </script>
 
 </body>

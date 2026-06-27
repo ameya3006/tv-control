@@ -14,11 +14,12 @@
 
 <script>
 
+// ▶ NEXT
 function next() {
   fetch("/next");
 }
 
-// 🔥 STATUS CHECK
+// 🔥 STATUS
 setInterval(async () => {
   try {
     const res = await fetch("/status");

@@ -7,66 +7,45 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
-let playlist = [];
+let playlist = [
+  "https://www.w3schools.com/html/mov_bbb.mp4",
+  "https://media.w3.org/2010/05/sintel/trailer.mp4",
+  "https://media.w3.org/2010/05/bunny/trailer.mp4"
+];
+
 let currentIndex = 0;
 
 let current = {
-  url: "",
-  isPlaying: false
+  url: playlist[0],
+  isPlaying: true
 };
 
 let videoEnded = false;
-
-// 🔥 SET PLAYLIST / CONTROL
-app.post("/set", (req, res) => {
-  const { list, url, action } = req.body;
-
-  if (list && Array.isArray(list)) {
-    playlist = list;
-    currentIndex = 0;
-    current.url = playlist[0] || "";
-    current.isPlaying = true;
-    videoEnded = false;
-  }
-
-  if (url) current.url = url;
-
-  if (action === "play") current.isPlaying = true;
-  if (action === "pause") current.isPlaying = false;
-
-  res.json({ success: true });
-});
 
 // 📺 TV GET
 app.get("/get", (req, res) => {
   res.json(current);
 });
 
-// 🔥 NEXT
+// ▶ NEXT
 app.get("/next", (req, res) => {
-  if (playlist.length === 0) {
-    return res.json({ url: null });
-  }
-
   currentIndex = (currentIndex + 1) % playlist.length;
 
   current.url = playlist[currentIndex];
   current.isPlaying = true;
   videoEnded = false;
 
-  console.log("NEXT:", current.url);
-
   res.json(current);
 });
 
-// 🔥 VIDEO ENDED (TV → SERVER)
+// 🎬 VIDEO ENDED (TV → SERVER)
 app.post("/ended", (req, res) => {
   videoEnded = true;
   console.log("VIDEO ENDED");
   res.json({ success: true });
 });
 
-// 🔥 STATUS (CONTROL)
+// 📱 STATUS (PHONE)
 app.get("/status", (req, res) => {
   res.json({
     ended: videoEnded,

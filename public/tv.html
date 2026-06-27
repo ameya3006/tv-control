@@ -78,7 +78,7 @@ setInterval(async () => {
 }, 1000);
 
 
-// 🔥 NEXT FUNCTION
+// 🔥 NEXT FUNCTION (COMMON)
 async function playNext() {
   if (nextCalled) return;
   nextCalled = true;
@@ -113,26 +113,20 @@ async function playNext() {
 }
 
 
-// ✅ ENDED EVENT (🔥 IMPORTANT CHANGE)
+// ✅ METHOD 1: ended event
 video.addEventListener("ended", () => {
   console.log("ENDED EVENT");
-
-  fetch("/status-update"); // 🔥 control ला कळेल video संपलं
-
-  playNext(); // 🔥 next video
+  playNext();
 });
 
 
-// ✅ FALLBACK (extra safety)
+// ✅ METHOD 2: fallback (important 🔥)
 setInterval(() => {
   if (
     video.duration &&
     video.currentTime >= video.duration - 0.5
   ) {
     console.log("TIME DETECT END");
-
-    fetch("/status-update"); // 🔥 ensure status update
-
     playNext();
   }
 }, 500);

@@ -27,26 +27,33 @@ video {
 <script>
 const video = document.getElementById("video");
 
-let started = false; // 🔥 important fix
+let currentUrl = "";
+let started = false;
 
 async function sync() {
-  const res = await fetch("/current");
-  const data = await res.json();
+  try {
+    const res = await fetch("/current");
+    const data = await res.json();
 
-  // ✅ URL change only when started
-  if (started && data.url && video.src !== data.url) {
-    video.src = data.url;
-  }
+    // 🔥 FIX: always update URL properly
+    if (data.url && data.url !== currentUrl) {
+      currentUrl = data.url;
+      video.src = currentUrl;
+      video.load(); // 🔥 VERY IMPORTANT
+    }
 
-  // ✅ Play only when started
-  if (started && data.isPlaying) {
-    video.play().catch(() => {});
-  } else {
-    video.pause();
+    if (started && data.isPlaying) {
+      video.play().catch(()=>{});
+    } else {
+      video.pause();
+    }
+
+  } catch (e) {
+    console.log("Server not reachable");
   }
 }
 
-// 🔥 USER INTERACTION REQUIRED FOR AUDIO
+// 🔥 click required for audio + start
 document.body.addEventListener("click", () => {
   started = true;
   video.muted = false;

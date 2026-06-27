@@ -5,57 +5,64 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
-
-// 🔥 CACHE OFF (Render fix)
-app.use((req, res, next) => {
-  res.set("Cache-Control", "no-store");
-  next();
-});
-
 app.use(express.static(path.join(__dirname, "public")));
 
-let playlist = [
-  "https://www.w3schools.com/html/mov_bbb.mp4",
-  "https://media.w3.org/2010/05/sintel/trailer.mp4",
-  "https://media.w3.org/2010/05/bunny/trailer.mp4"
-];
-
+let playlist = [];
 let currentIndex = 0;
 
 let current = {
-  url: playlist[0],
-  isPlaying: false // ❗ autoplay OFF
+  url: "",
+  isPlaying: false
 };
 
-let videoEnded = false;
+// 🎮 SET STATE / PLAYLIST
+app.post("/set", (req, res) => {
+  const { url, action, list } = req.body;
 
-// 📺 TV
+  // 👉 playlist set
+  if (list && Array.isArray(list)) {
+    playlist = list;
+    currentIndex = 0;
+    current.url = playlist[0] || "";
+    current.isPlaying = true;
+  }
+
+  // 👉 single video
+  if (url) {
+    current.url = url;
+  }
+
+  if (action === "play") current.isPlaying = true;
+  if (action === "pause") current.isPlaying = false;
+
+  console.log("STATE:", current, "PLAYLIST:", playlist);
+
+  res.json({ success: true });
+});
+
+// 📺 TV fetch
 app.get("/get", (req, res) => {
   res.json(current);
 });
 
-// ▶ NEXT
+// 🔥 NEXT VIDEO (FINAL FIX)
 app.get("/next", (req, res) => {
-  currentIndex = (currentIndex + 1) % playlist.length;
+  if (playlist.length === 0) {
+    return res.json({ url: null });
+  }
+
+  currentIndex++;
+
+  if (currentIndex >= playlist.length) {
+    currentIndex = 0;
+  }
 
   current.url = playlist[currentIndex];
   current.isPlaying = true;
-  videoEnded = false;
 
   console.log("NEXT:", current.url);
 
   res.json(current);
-});
-
-// 🎬 ENDED
-app.post("/ended", (req, res) => {
-  videoEnded = true;
-  res.json({ success: true });
-});
-
-// 📱 STATUS
-app.get("/status", (req, res) => {
-  res.json({ ended: videoEnded });
 });
 
 // routes
@@ -68,5 +75,5 @@ app.get("/tv.html", (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log("Running on port " + PORT);
+  console.log("Server running on port " + PORT);
 });

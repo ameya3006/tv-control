@@ -41,7 +41,6 @@ async function sync() {
 
 setInterval(sync, 1500);
 
-// 🔥 detect end
 video.addEventListener("ended", async () => {
   await fetch("/ended", { method: "POST" });
 });

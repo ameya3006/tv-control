@@ -12,12 +12,8 @@ html, body {
 }
 
 video {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 100vh;
-  height: 100vw;
-  transform: translate(-50%, -50%) rotate(90deg);
+  width: 100vw;
+  height: 100vh;
   object-fit: cover;
 }
 </style>
@@ -25,48 +21,64 @@ video {
 
 <body>
 
-<video id="video" autoplay muted playsinline></video>
+<video id="video" playsinline></video>
 
 <script>
 const video = document.getElementById("video");
 
 let lastUrl = "";
 
-// 🔥 FAST SYNC (important)
+// 🔥 USER TAP REQUIRED (important for TV)
+document.body.addEventListener("click", () => {
+  video.muted = false;
+});
+
+// 🔥 SYNC
 setInterval(async () => {
   try {
-    const res = await fetch("/get?t=" + Date.now()); // cache bypass
+    const res = await fetch("/get");
     const data = await res.json();
 
-    if (data.url && data.url !== lastUrl) {
+    // 👉 URL CHANGE (NEXT FIX)
+    if (data.url !== lastUrl) {
       lastUrl = data.url;
 
       console.log("NEW VIDEO:", lastUrl);
 
-      // 🔥 HARD RESET (important)
       video.pause();
-      video.removeAttribute("src");
+
+      video.src = lastUrl;
       video.load();
 
-      setTimeout(() => {
-        video.src = lastUrl + "?t=" + Date.now(); // cache bust
-        video.load();
-
+      if (data.isPlaying) {
         video.play().catch(() => {
           video.muted = true;
           video.play();
         });
-      }, 100);
+      }
     }
 
-  } catch (e) {
-    console.log(e);
+    // ▶ play/pause control
+    if (data.isPlaying && video.paused) {
+      video.play().catch(() => {
+        video.muted = true;
+        video.play();
+      });
+    }
+
+    if (!data.isPlaying && !video.paused) {
+      video.pause();
+    }
+
+  } catch (err) {
+    console.log(err);
   }
-}, 500); // faster polling
+}, 1000);
 
 
-// 🔥 END EVENT
+// ✅ END DETECT
 video.addEventListener("ended", () => {
+  console.log("ENDED");
   fetch("/ended", { method: "POST" });
 });
 </script>

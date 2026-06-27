@@ -11,13 +11,11 @@ html, body {
   overflow: hidden;
 }
 
+/* Full screen video */
 video {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 100vh;
-  height: 100vw;
-  transform: translate(-50%, -50%) rotate(90deg);
+  width: 100vw;
+  height: 100vh;
   object-fit: cover;
 }
 </style>
@@ -25,112 +23,28 @@ video {
 
 <body>
 
-<video id="video" playsinline></video>
+<video id="video" autoplay muted playsinline></video>
 
 <script>
 const video = document.getElementById("video");
 
-let currentUrl = "";
-let isPlaying = false;
-let nextCalled = false;
+async function loadVideo() {
+  const res = await fetch("/current");
+  const data = await res.json();
 
-// 🔥 AUDIO UNLOCK
-function unlockAudio() {
-  video.muted = false;
-  video.volume = 1.0;
-  video.play().catch(()=>{});
-}
-document.body.addEventListener("click", unlockAudio);
-document.body.addEventListener("touchstart", unlockAudio);
-
-
-// 🔥 SYNC LOOP
-setInterval(async () => {
-  try {
-    const res = await fetch("/get");
-    const data = await res.json();
-
-    if (data.url && currentUrl !== data.url) {
-      currentUrl = data.url;
-      nextCalled = false; // reset
-
-      video.pause();
-      video.src = data.url;
-      video.load();
-    }
-
-    if (data.isPlaying && video.paused) {
-      video.play().catch(() => {
-        video.muted = true;
-        video.play();
-      });
-    }
-
-    if (!data.isPlaying && !video.paused) {
-      video.pause();
-    }
-
-    isPlaying = data.isPlaying;
-
-  } catch (err) {
-    console.log("SYNC ERROR", err);
-  }
-}, 1000);
-
-
-// 🔥 NEXT FUNCTION (COMMON)
-async function playNext() {
-  if (nextCalled) return;
-  nextCalled = true;
-
-  console.log("Calling NEXT API...");
-
-  try {
-    const res = await fetch("/next");
-    const data = await res.json();
-
-    if (!data.url) return;
-
-    currentUrl = data.url;
-
-    video.pause();
-    video.removeAttribute("src");
-    video.load();
-
-    setTimeout(() => {
-      video.src = data.url;
-      video.load();
-
-      video.play().catch(() => {
-        video.muted = true;
-        video.play();
-      });
-    }, 300);
-
-  } catch (err) {
-    console.log("NEXT ERROR", err);
+  if (data.url && video.src !== data.url) {
+    video.src = data.url;
+    video.play().catch(()=>{});
   }
 }
 
+// keep checking for new video
+setInterval(loadVideo, 2000);
 
-// ✅ METHOD 1: ended event
+// auto next when video ends
 video.addEventListener("ended", () => {
-  console.log("ENDED EVENT");
-  playNext();
+  fetch("/ended", { method: "POST" });
 });
-
-
-// ✅ METHOD 2: fallback (important 🔥)
-setInterval(() => {
-  if (
-    video.duration &&
-    video.currentTime >= video.duration - 0.5
-  ) {
-    console.log("TIME DETECT END");
-    playNext();
-  }
-}, 500);
-
 </script>
 
 </body>

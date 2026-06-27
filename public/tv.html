@@ -11,7 +11,7 @@ html, body {
   overflow: hidden;
 }
 
-/* 🔥 FORCE LANDSCAPE MODE */
+/* 🔥 LANDSCAPE VIDEO */
 video {
   position: absolute;
   top: 50%;
@@ -36,7 +36,7 @@ let lastState = {
   isPlaying: false
 };
 
-// 🔥 AUDIO UNLOCK (IMPORTANT FOR MOBILE)
+// 🔥 AUDIO UNLOCK
 function unlockAudio() {
   video.muted = false;
   video.volume = 1.0;
@@ -46,11 +46,10 @@ function unlockAudio() {
 document.body.addEventListener("click", unlockAudio);
 document.body.addEventListener("touchstart", unlockAudio);
 
-// default audio
 video.muted = false;
 video.volume = 1.0;
 
-// 🔥 SYNC LOOP (SERVER STATE)
+// 🔥 SYNC LOOP
 setInterval(async () => {
   try {
     const res = await fetch("/get");
@@ -65,17 +64,10 @@ setInterval(async () => {
 
     // PLAY
     if (data.isPlaying && !lastState.isPlaying) {
-      video.muted = false;
-
-      const playPromise = video.play();
-
-      if (playPromise !== undefined) {
-        playPromise.catch(() => {
-          // fallback
-          video.muted = true;
-          video.play();
-        });
-      }
+      video.play().catch(() => {
+        video.muted = true;
+        video.play();
+      });
     }
 
     // PAUSE
@@ -91,7 +83,7 @@ setInterval(async () => {
 }, 800);
 
 
-// 🔥🔥 AUTO NEXT VIDEO (MAIN FIX)
+// 🔥 AUTO NEXT (FINAL)
 video.addEventListener("ended", async () => {
   console.log("Video ended → next");
 
@@ -100,13 +92,19 @@ video.addEventListener("ended", async () => {
     const data = await res.json();
 
     if (data.url) {
+      // 🔥 SYNC FIX
+      lastState.url = data.url;
+      lastState.isPlaying = true;
+
       video.src = data.url;
       video.load();
 
-      video.play().catch(() => {
-        video.muted = true;
-        video.play();
-      });
+      setTimeout(() => {
+        video.play().catch(() => {
+          video.muted = true;
+          video.play();
+        });
+      }, 300);
     }
   } catch (err) {
     console.log("Next error", err);

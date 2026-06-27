@@ -16,60 +16,44 @@ const io = new Server(server, {
   }
 });
 
-// Simple health check route
+// Health check
 app.get("/", (req, res) => {
-  res.send("Socket.IO Server Running 🚀");
+  res.send("TV Control Server Running 🚀");
 });
 
-// Track rooms (optional use)
-const rooms = {};
-
 io.on("connection", (socket) => {
-  console.log("✅ Client connected:", socket.id);
+  console.log(`✅ Client connected: ${socket.id}`);
 
-  // JOIN ROOM
   socket.on("join-room", (roomId) => {
     socket.join(roomId);
-
-    if (!rooms[roomId]) {
-      rooms[roomId] = [];
-    }
-
-    rooms[roomId].push(socket.id);
-
-    console.log(`📺 ${socket.id} joined room: ${roomId}`);
+    console.log(`📺 Joined room: ${roomId} | ${socket.id}`);
   });
 
-  // LOAD VIDEO
   socket.on("load-video", (data) => {
-    console.log("🎬 Load video:", data);
+    console.log(`🎬 Load video in ${data.roomId}`);
     io.to(data.roomId).emit("load-video", data.url);
   });
 
-  // PLAY
   socket.on("play", (roomId) => {
-    console.log("▶ Play in room:", roomId);
+    console.log(`▶ Play in ${roomId}`);
     io.to(roomId).emit("play");
   });
 
-  // PAUSE
   socket.on("pause", (roomId) => {
-    console.log("⏸ Pause in room:", roomId);
+    console.log(`⏸ Pause in ${roomId}`);
     io.to(roomId).emit("pause");
   });
 
-  // NEXT
   socket.on("next", (roomId) => {
-    console.log("⏭ Next in room:", roomId);
+    console.log(`⏭ Next in ${roomId}`);
     io.to(roomId).emit("next");
   });
 
   socket.on("disconnect", () => {
-    console.log("❌ Client disconnected:", socket.id);
+    console.log(`❌ Client disconnected: ${socket.id}`);
   });
 });
 
-// Start server
 const PORT = process.env.PORT || 3000;
 
 server.listen(PORT, () => {

@@ -7,19 +7,21 @@ html, body {
   margin: 0;
   height: 100%;
   background: black;
+  overflow: hidden;
 }
 
 video {
   width: 100vw;
   height: 100vh;
-  object-fit: cover;
+  object-fit: contain; /* 🔥 correct ratio */
+  background: black;
 }
 </style>
 </head>
 
 <body>
 
-<video id="video" muted></video>
+<video id="video" controls></video>
 
 <script>
 const video = document.getElementById("video");
@@ -33,17 +35,15 @@ async function sync() {
   }
 
   if (data.isPlaying) {
-    video.play().catch(()=>{});
+    video.play().catch(() => {
+      console.log("Tap required for audio");
+    });
   } else {
     video.pause();
   }
 }
 
 setInterval(sync, 1500);
-
-video.addEventListener("ended", async () => {
-  await fetch("/ended", { method: "POST" });
-});
 </script>
 
 </body>

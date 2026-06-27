@@ -6,21 +6,25 @@
 
 <body>
 
-<h2>TV Control Panel</h2>
+<h2>📱 Control Panel</h2>
 
-<!-- Add Video -->
-<input id="url" placeholder="Enter video URL">
+<input id="url" placeholder="Paste video URL">
 <button onclick="add()">Add</button>
 
 <br><br>
 
-<!-- Controls -->
-<button onclick="next()">Next</button>
+<button onclick="start()">Start ▶</button>
+<button onclick="play()">Play ▶</button>
+<button onclick="pause()">Pause ⏸</button>
+<button onclick="next()">Next ⏭</button>
 
-<h3>Playlist</h3>
+<h3 id="status">Loading...</h3>
+
 <ul id="list"></ul>
 
 <script>
+
+// ➕ Add
 async function add() {
   const url = document.getElementById("url").value;
 
@@ -34,16 +38,38 @@ async function add() {
   load();
 }
 
-async function next() {
-  await fetch("/next", { method: "POST" });
+// ▶ Start
+function start() {
+  fetch("/start", { method: "POST" });
 }
 
+// ▶ Play
+function play() {
+  fetch("/play", { method: "POST" });
+}
+
+// ⏸ Pause
+function pause() {
+  fetch("/pause", { method: "POST" });
+}
+
+// ⏭ Next
+function next() {
+  fetch("/next", { method: "POST" });
+}
+
+// 📜 Playlist
 async function load() {
   const res = await fetch("/playlist");
   const data = await res.json();
 
   const list = document.getElementById("list");
   list.innerHTML = "";
+
+  if (data.length === 0) {
+    list.innerHTML = "<li>No videos</li>";
+    return;
+  }
 
   data.forEach((v, i) => {
     const li = document.createElement("li");
@@ -52,7 +78,23 @@ async function load() {
   });
 }
 
+// 📊 Status
+setInterval(async () => {
+  const res = await fetch("/status");
+  const data = await res.json();
+
+  if (data.ended) {
+    document.getElementById("status").innerText = "⚠️ Finished! Click Next";
+  } else if (data.isPlaying) {
+    document.getElementById("status").innerText = "▶ Playing...";
+  } else {
+    document.getElementById("status").innerText = "⏸ Paused";
+  }
+
+}, 1000);
+
 load();
+
 </script>
 
 </body>

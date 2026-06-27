@@ -11,7 +11,7 @@ html, body {
   overflow: hidden;
 }
 
-/* 🔥 LANDSCAPE VIDEO */
+/* 🔥 LANDSCAPE FORCE */
 video {
   position: absolute;
   top: 50%;
@@ -36,7 +36,7 @@ let lastState = {
   isPlaying: false
 };
 
-// 🔥 AUDIO UNLOCK
+// 🔥 AUDIO UNLOCK (mobile fix)
 function unlockAudio() {
   video.muted = false;
   video.volume = 1.0;
@@ -46,24 +46,21 @@ function unlockAudio() {
 document.body.addEventListener("click", unlockAudio);
 document.body.addEventListener("touchstart", unlockAudio);
 
-video.muted = false;
-video.volume = 1.0;
-
 // 🔥 SYNC LOOP
 setInterval(async () => {
   try {
     const res = await fetch("/get");
     const data = await res.json();
 
-    // URL change
-    if (data.url && data.url !== lastState.url) {
+    // 🔥 URL CHANGE FIX (important)
+    if (data.url && data.url !== video.src) {
+      video.pause();
       video.src = data.url;
       video.load();
-      lastState.url = data.url;
     }
 
     // PLAY
-    if (data.isPlaying && !lastState.isPlaying) {
+    if (data.isPlaying && video.paused) {
       video.play().catch(() => {
         video.muted = true;
         video.play();
@@ -71,46 +68,51 @@ setInterval(async () => {
     }
 
     // PAUSE
-    if (!data.isPlaying && lastState.isPlaying) {
+    if (!data.isPlaying && !video.paused) {
       video.pause();
     }
 
-    lastState.isPlaying = data.isPlaying;
+    lastState = data;
 
   } catch (err) {
-    console.log("sync error", err);
+    console.log("SYNC ERROR", err);
   }
 }, 800);
 
 
-// 🔥 AUTO NEXT (FINAL)
+// 🔥 NEXT VIDEO FIX (MAIN)
 video.addEventListener("ended", async () => {
-  console.log("Video ended → next");
+  console.log("Video Ended → Next");
 
   try {
     const res = await fetch("/next");
     const data = await res.json();
 
-    if (data.url) {
-      // 🔥 SYNC FIX
-      lastState.url = data.url;
-      lastState.isPlaying = true;
+    if (!data.url) return;
 
+    // 🔥 overwrite bug avoid
+    lastState.url = data.url;
+    lastState.isPlaying = true;
+
+    // 🔥 HARD RESET (important)
+    video.pause();
+    video.removeAttribute("src");
+    video.load();
+
+    setTimeout(() => {
       video.src = data.url;
       video.load();
 
-      setTimeout(() => {
-        video.play().catch(() => {
-          video.muted = true;
-          video.play();
-        });
-      }, 300);
-    }
+      video.play().catch(() => {
+        video.muted = true;
+        video.play();
+      });
+    }, 200);
+
   } catch (err) {
-    console.log("Next error", err);
+    console.log("NEXT ERROR", err);
   }
 });
-
 </script>
 
 </body>

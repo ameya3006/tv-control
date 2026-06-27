@@ -1,25 +1,103 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Control</title>
+  <title>Control Panel</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #0f172a, #020617);
+      color: white;
+      text-align: center;
+    }
+
+    .container {
+      padding: 20px;
+      max-width: 500px;
+      margin: auto;
+    }
+
+    h2 {
+      margin-bottom: 20px;
+    }
+
+    input {
+      width: 75%;
+      padding: 10px;
+      border-radius: 10px;
+      border: none;
+      outline: none;
+      margin-bottom: 10px;
+    }
+
+    button {
+      padding: 10px 15px;
+      margin: 5px;
+      border: none;
+      border-radius: 10px;
+      background: #2563eb;
+      color: white;
+      font-size: 14px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    button:hover {
+      background: #1d4ed8;
+    }
+
+    .controls {
+      margin-top: 15px;
+    }
+
+    .controls button {
+      width: 80px;
+    }
+
+    h3 {
+      margin-top: 25px;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    li {
+      background: #1e293b;
+      margin: 5px 0;
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 13px;
+      word-break: break-all;
+    }
+
+  </style>
 </head>
 
 <body>
 
-<h2>📱 Control Panel</h2>
+<div class="container">
 
-<input id="url" placeholder="Enter video URL">
-<button onclick="add()">Add</button>
+  <h2>📱 TV Control Panel</h2>
 
-<br><br>
+  <input id="url" placeholder="Enter video URL">
+  <br>
+  <button onclick="add()">➕ Add</button>
 
-<button onclick="start()">Start</button>
-<button onclick="play()">Play</button>
-<button onclick="pause()">Pause</button>
-<button onclick="next()">Next</button>
+  <div class="controls">
+    <button onclick="start()">▶ Start</button>
+    <button onclick="play()">⏯ Play</button>
+    <button onclick="pause()">⏸ Pause</button>
+    <button onclick="next()">⏭ Next</button>
+  </div>
 
-<h3>Playlist</h3>
-<ul id="list"></ul>
+  <h3>🎬 Playlist</h3>
+  <ul id="list"></ul>
+
+</div>
 
 <script>
 async function add() {

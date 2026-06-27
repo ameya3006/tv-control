@@ -22,28 +22,32 @@ video {
 
 <body>
 
-<video id="video"></video>
+<video id="video" playsinline></video>
 
 <script>
 const video = document.getElementById("video");
 
 let currentUrl = "";
-let started = false;
 
 async function sync() {
   try {
     const res = await fetch("/current");
     const data = await res.json();
 
-    // 🔥 FIX: always update URL properly
     if (data.url && data.url !== currentUrl) {
       currentUrl = data.url;
       video.src = currentUrl;
-      video.load(); // 🔥 VERY IMPORTANT
+      video.load();
     }
 
-    if (started && data.isPlaying) {
-      video.play().catch(()=>{});
+    if (data.isPlaying) {
+      video.muted = false;
+
+      video.play().catch(() => {
+        video.muted = true;
+        video.play().catch(()=>{});
+      });
+
     } else {
       video.pause();
     }
@@ -52,13 +56,6 @@ async function sync() {
     console.log("Server not reachable");
   }
 }
-
-// 🔥 click required for audio + start
-document.body.addEventListener("click", () => {
-  started = true;
-  video.muted = false;
-  video.play().catch(()=>{});
-});
 
 setInterval(sync, 1500);
 </script>

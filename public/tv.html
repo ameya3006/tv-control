@@ -11,23 +11,42 @@ html, body {
   overflow: hidden;
 }
 
+/* portrait phone → force landscape */
 video {
-  width: 100vw;
-  height: 100vh;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100vh;
+  height: 100vw;
+  transform: translate(-50%, -50%) rotate(90deg);
   object-fit: contain;
   background: black;
+}
+
+/* landscape mode → normal */
+@media (orientation: landscape) {
+  video {
+    width: 100vw;
+    height: 100vh;
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
 }
 </style>
 </head>
 
 <body>
 
-<video id="video" autoplay playsinline></video>
+<video id="video" autoplay muted playsinline></video>
 
 <script>
 const video = document.getElementById("video");
-
 let currentUrl = "";
+
+// autoplay fix (tap for sound if needed)
+document.body.addEventListener("click", () => {
+  video.muted = false;
+  video.play().catch(()=>{});
+});
 
 async function sync() {
   try {

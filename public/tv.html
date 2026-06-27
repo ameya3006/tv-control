@@ -25,76 +25,49 @@ video {
 
 <body>
 
-<video id="video" playsinline></video>
+<video id="video" autoplay muted playsinline></video>
 
 <script>
 const video = document.getElementById("video");
 
-let currentUrl = "";
-let sent = false;
+let lastUrl = "";
 
-// 🔊 unlock audio
-document.body.addEventListener("click", () => {
-  video.muted = false;
-  video.play().catch(()=>{});
-});
-
-// 🔥 SYNC LOOP
+// 🔥 FAST SYNC (important)
 setInterval(async () => {
   try {
-    const res = await fetch("/get");
+    const res = await fetch("/get?t=" + Date.now()); // cache bypass
     const data = await res.json();
 
-    // 👉 NEW VIDEO LOAD (FIXED)
-    if (data.url && currentUrl !== data.url) {
-      currentUrl = data.url;
-      sent = false;
+    if (data.url && data.url !== lastUrl) {
+      lastUrl = data.url;
 
-      console.log("NEW VIDEO:", currentUrl);
+      console.log("NEW VIDEO:", lastUrl);
 
+      // 🔥 HARD RESET (important)
       video.pause();
-      video.src = "";
+      video.removeAttribute("src");
+      video.load();
 
       setTimeout(() => {
-        video.src = currentUrl;
+        video.src = lastUrl + "?t=" + Date.now(); // cache bust
         video.load();
 
         video.play().catch(() => {
           video.muted = true;
           video.play();
         });
-      }, 200);
+      }, 100);
     }
 
-    // ▶ play/pause sync
-    if (data.isPlaying && video.paused) {
-      video.play().catch(() => {
-        video.muted = true;
-        video.play();
-      });
-    }
-
-    if (!data.isPlaying && !video.paused) {
-      video.pause();
-    }
-
-  } catch (err) {
-    console.log(err);
+  } catch (e) {
+    console.log(e);
   }
-}, 1000);
+}, 500); // faster polling
 
 
-// ✅ VIDEO END DETECT
+// 🔥 END EVENT
 video.addEventListener("ended", () => {
-  if (!sent) {
-    sent = true;
-
-    console.log("VIDEO ENDED");
-
-    fetch("/ended", {
-      method: "POST"
-    });
-  }
+  fetch("/ended", { method: "POST" });
 });
 </script>
 

@@ -27,7 +27,7 @@ app.get("/get", (req, res) => {
   res.json(current);
 });
 
-// ▶ NEXT
+// ▶ NEXT VIDEO
 app.get("/next", (req, res) => {
   currentIndex = (currentIndex + 1) % playlist.length;
 
@@ -35,17 +35,19 @@ app.get("/next", (req, res) => {
   current.isPlaying = true;
   videoEnded = false;
 
+  console.log("NEXT:", current.url);
+
   res.json(current);
 });
 
-// 🎬 VIDEO ENDED (TV → SERVER)
+// 🎬 VIDEO ENDED
 app.post("/ended", (req, res) => {
   videoEnded = true;
   console.log("VIDEO ENDED");
   res.json({ success: true });
 });
 
-// 📱 STATUS (PHONE)
+// 📱 STATUS
 app.get("/status", (req, res) => {
   res.json({
     ended: videoEnded,

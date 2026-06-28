@@ -2,15 +2,14 @@
 <html>
 <body style="margin:0;background:black;overflow:hidden;">
 
-<video id="v"
+<video id="v" playsinline
 style="
 position:fixed;
 top:50%;
 left:50%;
-width:100vh;
-height:100vw;
+max-width:100vh;
+max-height:100vw;
 transform:translate(-50%, -50%) rotate(90deg);
-object-fit:cover;
 background:black;
 ">
 </video>
@@ -27,14 +26,14 @@ setInterval(async () => {
     const res = await fetch(API + "/video");
     const data = await res.json();
 
-    // ✅ load video (no autoplay)
+    // ✅ load video
     if (data.url && data.url !== lastUrl) {
       video.src = data.url;
       video.load();
       lastUrl = data.url;
     }
 
-    // ✅ play / pause control
+    // ✅ play / pause
     if (data.playing) {
       video.play().catch(()=>{});
     } else {
@@ -42,16 +41,16 @@ setInterval(async () => {
     }
 
   } catch (e) {
-    console.log("Server error", e);
+    console.log("error", e);
   }
 }, 1000);
 
-// ⏭ auto next
+// ⏭ next
 video.onended = () => {
   fetch(API + "/next", { method: "POST" });
 };
 
-// 🔊 enable audio on tap (mobile rule)
+// 🔊 audio enable
 document.body.addEventListener("click", () => {
   video.muted = false;
   video.play().catch(()=>{});

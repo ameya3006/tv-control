@@ -1,109 +1,29 @@
 <!DOCTYPE html>
 <html>
-<head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<body style="font-family:sans-serif;text-align:center">
 
-<style>
-body {
-  background: #0f172a;
-  color: white;
-  font-family: sans-serif;
-  padding: 20px;
-}
+<h2>TV Control</h2>
 
-h1 {
-  margin-bottom: 20px;
-}
+<input id="url" placeholder="Enter video URL" style="width:80%;padding:10px"><br><br>
 
-input {
-  width: 70%;
-  padding: 10px;
-  border-radius: 8px;
-  border: none;
-}
-
-button {
-  padding: 12px 20px;
-  margin: 10px;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-}
-
-.add { background: purple; color: white; }
-.start { background: green; }
-.play { background: blue; }
-.pause { background: orange; }
-.next { background: purple; }
-
-ul {
-  margin-top: 20px;
-}
-</style>
-</head>
-
-<body>
-
-<h1>📺 TV Control Panel</h1>
-
-<input id="url" placeholder="Paste video URL">
-<button class="add" onclick="addVideo()">ADD</button>
-
-<br>
-
-<button class="start" onclick="start()">⏮ START</button>
-<button class="play" onclick="resume()">▶ PLAY</button>
-<button class="pause" onclick="pause()">⏸ PAUSE</button>
-<button class="next" onclick="next()">⏭ NEXT</button>
-
-<h3>📁 Playlist</h3>
-<ul id="list"></ul>
+<button onclick="playVideo()">▶ Play</button>
+<button onclick="pauseVideo()">⏸ Pause</button>
 
 <script>
-const API = "";
-
-let playlist = [];
-
-function addVideo() {
+function playVideo() {
   const url = document.getElementById("url").value;
 
-  fetch(API + "/add", {
+  fetch("/play", {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
     },
     body: JSON.stringify({ url })
   });
-
-  playlist.push(url);
-  render();
 }
 
-function render() {
-  const ul = document.getElementById("list");
-  ul.innerHTML = "";
-
-  playlist.forEach((v, i) => {
-    const li = document.createElement("li");
-    li.innerText = (i + 1) + ". " + v;
-    ul.appendChild(li);
-  });
-}
-
-function start() {
-  fetch(API + "/start", { method: "POST" });
-}
-
-function pause() {
-  fetch(API + "/pause", { method: "POST" });
-}
-
-function resume() {
-  fetch(API + "/resume", { method: "POST" });
-}
-
-function next() {
-  fetch(API + "/next", { method: "POST" });
+function pauseVideo() {
+  fetch("/pause", { method: "POST" });
 }
 </script>
 

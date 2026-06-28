@@ -20,8 +20,9 @@ const API = "";
 const video = document.getElementById("v");
 
 let lastUrl = "";
+let userInteracted = false; // 🔥 MAIN FIX
 
-// 🔁 sync with server
+// 🔁 server sync
 setInterval(async () => {
   try {
     const res = await fetch(API + "/video");
@@ -34,7 +35,10 @@ setInterval(async () => {
       lastUrl = data.url;
     }
 
-    // ✅ ONLY server controls play/pause
+    // ❗ BEFORE USER TAP → DO NOTHING
+    if (!userInteracted) return;
+
+    // ✅ control after interaction
     if (data.playing === true && video.readyState >= 3) {
       if (video.paused) {
         video.play().catch(()=>{});
@@ -55,9 +59,12 @@ video.onended = () => {
   fetch(API + "/next", { method: "POST" });
 };
 
-// 🔊 tap ONLY for sound (NO PLAY HERE ❌)
+// 👆 FIRST TAP = UNLOCK SYSTEM
 document.body.addEventListener("click", () => {
-  video.muted = false;
+  if (!userInteracted) {
+    userInteracted = true;
+    video.muted = false;
+  }
 });
 </script>
 

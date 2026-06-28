@@ -1,9 +1,19 @@
 <!DOCTYPE html>
 <html>
-<body style="margin:0;background:black">
+<body style="margin:0;background:black;overflow:hidden;">
 
 <video id="v"
-style="width:100vw;height:100vh;object-fit:cover"></video>
+style="
+position:fixed;
+top:50%;
+left:50%;
+width:100vh;
+height:100vw;
+transform:translate(-50%, -50%) rotate(90deg);
+object-fit:cover;
+background:black;
+">
+</video>
 
 <script>
 const API = "";
@@ -11,33 +21,37 @@ const video = document.getElementById("v");
 
 let lastUrl = "";
 
-// 🔁 sync with server
+// 🔁 server sync
 setInterval(async () => {
-  const res = await fetch(API + "/video");
-  const data = await res.json();
+  try {
+    const res = await fetch(API + "/video");
+    const data = await res.json();
 
-  // ✅ load video (no autoplay)
-  if (data.url && data.url !== lastUrl) {
-    video.src = data.url;
-    video.load();
-    lastUrl = data.url;
+    // ✅ load video (no autoplay)
+    if (data.url && data.url !== lastUrl) {
+      video.src = data.url;
+      video.load();
+      lastUrl = data.url;
+    }
+
+    // ✅ play / pause control
+    if (data.playing) {
+      video.play().catch(()=>{});
+    } else {
+      video.pause();
+    }
+
+  } catch (e) {
+    console.log("Server error", e);
   }
-
-  // ✅ play/pause control
-  if (data.playing) {
-    video.play().catch(()=>{});
-  } else {
-    video.pause();
-  }
-
 }, 1000);
 
-// 👉 auto next
+// ⏭ auto next
 video.onended = () => {
   fetch(API + "/next", { method: "POST" });
 };
 
-// 🔊 IMPORTANT: enable audio on first tap
+// 🔊 enable audio on tap (mobile rule)
 document.body.addEventListener("click", () => {
   video.muted = false;
   video.play().catch(()=>{});

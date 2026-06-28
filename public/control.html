@@ -1,55 +1,43 @@
 <!DOCTYPE html>
 <html>
-<head>
-<title>TV Control Panel</title>
-</head>
+<body style="background:#0b132b;color:white">
 
-<body style="background:#0b132b;color:white;font-family:sans-serif">
-
-<h1>📺 TV Control Panel</h1>
+<h1>TV Control Panel</h1>
 
 <input id="url" placeholder="Paste video URL" style="width:60%">
 <button onclick="add()">ADD</button>
 
 <br><br>
 
-<button onclick="start()" style="background:green;color:white">START</button>
-<button onclick="play()" style="background:blue;color:white">PLAY</button>
-<button onclick="pause()" style="background:orange;color:black">PAUSE</button>
-<button onclick="next()" style="background:purple;color:white">NEXT</button>
+<button onclick="start()">START</button>
+<button onclick="play()">PLAY</button>
+<button onclick="pause()">PAUSE</button>
 
 <script>
 const API = "";
 
-// 👉 ADD URL
+// फक्त URL save
 function add() {
-  const url = document.getElementById("url").value;
-
   fetch(API + "/set", {
     method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({ url })
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({
+      url: document.getElementById("url").value
+    })
   });
 }
 
-// 👉 START (IMPORTANT FIX)
+// START = play true
 function start() {
   fetch(API + "/start", { method: "POST" });
 }
 
-// 👉 PLAY
 function play() {
   fetch(API + "/resume", { method: "POST" });
 }
 
-// 👉 PAUSE
 function pause() {
   fetch(API + "/pause", { method: "POST" });
-}
-
-// 👉 NEXT (optional)
-function next() {
-  fetch(API + "/next", { method: "POST" });
 }
 </script>
 

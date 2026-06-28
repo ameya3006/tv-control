@@ -10,7 +10,7 @@ let videos = [
 ];
 
 let currentIndex = 0;
-let playing = false; // ✅ IMPORTANT FIX (default false)
+let playing = false; // ✅ autoplay FIX
 
 app.get("/video", (req, res) => {
   res.json({
@@ -21,12 +21,12 @@ app.get("/video", (req, res) => {
 
 app.post("/play", (req, res) => {
   playing = true;
-  res.send("playing");
+  res.send("play");
 });
 
 app.post("/pause", (req, res) => {
   playing = false;
-  res.send("paused");
+  res.send("pause");
 });
 
 app.post("/next", (req, res) => {

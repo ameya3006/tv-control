@@ -2,37 +2,47 @@
 <html>
 <body style="margin:0;background:black">
 
-<video id="video" muted playsinline
-style="width:100vw;height:100vh;object-fit:cover;"></video>
+<video id="video"
+muted
+autoplay
+playsinline
+style="width:100vw;height:100vh;object-fit:cover;">
+</video>
 
 <script>
 const video = document.getElementById("video");
 
 let currentUrl = "";
-let lastPlaying = false;
 
 async function sync() {
-  const res = await fetch("/video");
-  const data = await res.json();
+  try {
+    const res = await fetch("/video");
+    const data = await res.json();
 
-  console.log(data);
+    console.log("DATA:", data);
 
-  // 🎬 load new video
-  if (data.url && data.url !== currentUrl) {
-    currentUrl = data.url;
-    video.src = currentUrl;
-    video.load();
-  }
+    // 🎬 new video load
+    if (data.url && data.url !== currentUrl) {
+      currentUrl = data.url;
 
-  // ▶ play / pause
-  if (data.playing !== lastPlaying) {
-    lastPlaying = data.playing;
+      video.src = currentUrl;
+      video.load();
 
+      // 💥 FORCE PLAY (main fix)
+      setTimeout(() => {
+        video.play().catch(e => console.log("Play blocked:", e));
+      }, 300);
+    }
+
+    // ▶ control
     if (data.playing) {
-      video.play().catch(e => console.log("Play blocked"));
+      video.play().catch(()=>{});
     } else {
       video.pause();
     }
+
+  } catch(e) {
+    console.log("ERROR:", e);
   }
 }
 

@@ -2,7 +2,6 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <style>
 html, body {
   margin: 0;
@@ -11,66 +10,41 @@ html, body {
   overflow: hidden;
 }
 
-/* portrait phone → force landscape */
 video {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 100vh;
-  height: 100vw;
-  transform: translate(-50%, -50%) rotate(90deg);
-  object-fit: contain;
-  background: black;
-}
-
-/* landscape mode → normal */
-@media (orientation: landscape) {
-  video {
-    width: 100vw;
-    height: 100vh;
-    transform: translate(-50%, -50%) rotate(0deg);
-  }
+  width: 100vw;
+  height: 100vh;
+  object-fit: cover;
 }
 </style>
 </head>
 
 <body>
 
-<video id="video" autoplay muted playsinline></video>
+<video id="video" playsinline></video>
 
 <script>
 const video = document.getElementById("video");
-let currentUrl = "";
-
-// autoplay fix (tap for sound if needed)
-document.body.addEventListener("click", () => {
-  video.muted = false;
-  video.play().catch(()=>{});
-});
 
 async function sync() {
-  try {
-    const res = await fetch(window.location.origin + "/current");
-    const data = await res.json();
+  const res = await fetch("/state");
+  const data = await res.json();
 
-    if (data.url && data.url !== currentUrl) {
-      currentUrl = data.url;
-      video.src = currentUrl;
-      video.load();
-    }
+  // URL change
+  if (data.url && video.src !== data.url) {
+    video.src = data.url;
+    video.load();
+  }
 
-    if (data.isPlaying) {
-      video.play().catch(()=>{});
-    } else {
-      video.pause();
-    }
-
-  } catch (e) {
-    console.log("Error:", e);
+  // play/pause
+  if (data.isPlaying) {
+    video.muted = false; // 🔊 AUDIO FIX
+    video.play().catch(()=>{});
+  } else {
+    video.pause();
   }
 }
 
-setInterval(sync, 1500);
+setInterval(sync, 1000);
 </script>
 
 </body>

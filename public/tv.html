@@ -14,43 +14,61 @@ html, body {
 video {
   width: 100vw;
   height: 100vh;
-  object-fit: contain; /* 🔥 horizontal fix */
+  object-fit: contain;
+  will-change: transform;
 }
 </style>
 </head>
 
 <body>
 
-<video id="video" autoplay playsinline muted></video>
+<video id="video" autoplay playsinline muted preload="auto"></video>
 
 <script>
 const video = document.getElementById("video");
 
+let lastUrl = "";
+let lastPlayState = null;
+
 async function loadState() {
-  const res = await fetch("/state");
-  const data = await res.json();
+  try {
+    const res = await fetch("/state");
+    const data = await res.json();
 
-  if (data.url && video.src !== data.url) {
-    video.src = data.url;
-    video.load();
-  }
+    // ✅ change video ONLY when URL changes
+    if (data.url && lastUrl !== data.url) {
+      lastUrl = data.url;
+      video.src = data.url;
+      video.load();
+    }
 
-  if (data.isPlaying) {
-    video.muted = true;
+    // ✅ play/pause only when changed
+    if (data.isPlaying !== lastPlayState) {
+      lastPlayState = data.isPlaying;
 
-    video.play().then(() => {
-      setTimeout(() => {
-        video.muted = false;
-      }, 500);
-    }).catch(() => {
-      console.log("Tap needed");
-    });
-  } else {
-    video.pause();
+      if (data.isPlaying) {
+        video.play().catch(() => {});
+      } else {
+        video.pause();
+      }
+    }
+
+  } catch (err) {
+    console.log("Server issue...");
   }
 }
 
-setInterval(loadState, 1000);
+// 🔥 less API calls = smooth playback
+setInterval(loadState, 3000);
+
+// debug (optional)
+video.addEventListener("waiting", () => {
+  console.log("Buffering...");
+});
+
+video.addEventListener("playing", () => {
+  console.log("Playing...");
+});
 </script>
 
 </body>

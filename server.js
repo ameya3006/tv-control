@@ -5,55 +5,63 @@ app.use(express.json());
 app.use(express.static("public"));
 
 let playlist = [];
-let current = -1;
-let isPlaying = false;
+let currentIndex = 0;
 
+let state = {
+  url: "",
+  isPlaying: false
+};
+
+// ➕ Add video
 app.post("/add", (req, res) => {
-  const url = req.body.url;
-  if (url && url.trim() !== "") {
+  const { url } = req.body;
+  if (url) {
     playlist.push(url);
   }
-  res.json({ playlist });
-});
-
-app.post("/start", (req, res) => {
-  if (playlist.length > 0) {
-    current = 0;
-    isPlaying = true;
-  }
   res.sendStatus(200);
 });
 
-app.post("/play", (req, res) => {
-  isPlaying = true;
-  res.sendStatus(200);
-});
-
-app.post("/pause", (req, res) => {
-  isPlaying = false;
-  res.sendStatus(200);
-});
-
-app.post("/next", (req, res) => {
-  if (playlist.length > 0) {
-    current = (current + 1) % playlist.length;
-  }
-  res.sendStatus(200);
-});
-
-app.get("/current", (req, res) => {
-  if (current === -1) {
-    return res.json({ url: "", isPlaying: false });
-  }
-
-  res.json({
-    url: playlist[current],
-    isPlaying
-  });
-});
-
+// 📂 Get playlist
 app.get("/playlist", (req, res) => {
   res.json(playlist);
 });
 
-app.listen(3000, () => console.log("Server running"));
+// ▶ START (first video)
+app.post("/start", (req, res) => {
+  if (playlist.length > 0) {
+    currentIndex = 0;
+    state.url = playlist[currentIndex];
+    state.isPlaying = true;
+  }
+  res.sendStatus(200);
+});
+
+// ▶ PLAY
+app.post("/play", (req, res) => {
+  state.isPlaying = true;
+  res.sendStatus(200);
+});
+
+// ⏸ PAUSE
+app.post("/pause", (req, res) => {
+  state.isPlaying = false;
+  res.sendStatus(200);
+});
+
+// ⏭ NEXT
+app.post("/next", (req, res) => {
+  if (playlist.length > 0) {
+    currentIndex = (currentIndex + 1) % playlist.length;
+    state.url = playlist[currentIndex];
+    state.isPlaying = true;
+  }
+  res.sendStatus(200);
+});
+
+// 📡 STATE (TV fetch karega)
+app.get("/state", (req, res) => {
+  res.json(state);
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log("Server running on " + PORT));

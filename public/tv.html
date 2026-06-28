@@ -11,28 +11,28 @@ const video = document.getElementById("v");
 
 let lastUrl = "";
 
-// 🔁 server check
+// 🔁 check server
 setInterval(async () => {
   const res = await fetch(API + "/video");
   const data = await res.json();
 
-  // 👉 ONLY load (NO autoplay)
+  // ❌ START नसेल तर काहीच करू नको
+  if (!data.playing) {
+    video.pause();
+    return;
+  }
+
+  // ✅ START झाल्यावरच load + play
   if (data.url && data.url !== lastUrl) {
     video.src = data.url;
     video.load();
-    lastUrl = data.url;
-  }
-
-  // 👉 PLAY only when START क्लिक
-  if (data.playing) {
     video.play().catch(()=>{});
-  } else {
-    video.pause();
+    lastUrl = data.url;
   }
 
 }, 1000);
 
-// 👉 AUTO NEXT (only if playing)
+// 👉 AUTO NEXT
 video.onended = () => {
   fetch(API + "/next", { method: "POST" });
 };

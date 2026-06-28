@@ -15,63 +15,54 @@ video {
   width: 100vw;
   height: 100vh;
   object-fit: cover;
-}
-
-#startBtn {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  padding: 15px;
-  font-size: 18px;
+  background: black;
 }
 </style>
 </head>
 
 <body>
 
-<button id="startBtn">Tap to Start</button>
-<video id="video" playsinline></video>
+<video id="video" autoplay muted playsinline></video>
 
 <script>
 const video = document.getElementById("video");
-const btn = document.getElementById("startBtn");
 
 let currentUrl = "";
 let lastState = false;
 
 async function sync() {
-  const res = await fetch("/video");
-  const data = await res.json();
+  try {
+    const res = await fetch("/video");
+    const data = await res.json();
 
-  // new video
-  if (data.url && data.url !== currentUrl) {
-    currentUrl = data.url;
-    video.src = currentUrl;
-    video.load();
-  }
+    // new video load
+    if (data.url && data.url !== currentUrl) {
+      currentUrl = data.url;
 
-  // play/pause
-  if (data.playing !== lastState) {
-    lastState = data.playing;
+      video.src = currentUrl;
+      video.load();
 
-    if (data.playing) {
       video.play().catch(()=>{});
-    } else {
-      video.pause();
     }
+
+    // play/pause control
+    if (data.playing !== lastState) {
+      lastState = data.playing;
+
+      if (data.playing) {
+        video.play().catch(()=>{});
+      } else {
+        video.pause();
+      }
+    }
+
+  } catch(e) {
+    console.log("error");
   }
 }
 
-setInterval(sync, 2000);
-
-// mobile audio fix
-btn.onclick = () => {
-  video.muted = false;
-  video.play().then(() => {
-    btn.style.display = "none";
-  });
-};
+// fast sync
+setInterval(sync, 1500);
 </script>
 
 </body>

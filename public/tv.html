@@ -16,24 +16,39 @@
       position: absolute;
       top: 50%;
       left: 50%;
-      width: 100vh;      /* 🔥 magic */
+      width: 100vh;
       height: 100vw;
       transform: translate(-50%, -50%) rotate(90deg);
       object-fit: cover;
       background: black;
+    }
+
+    /* tap to start button */
+    #startBtn {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      padding: 15px 25px;
+      font-size: 18px;
+      background: white;
+      border: none;
+      border-radius: 10px;
     }
   </style>
 </head>
 
 <body>
 
-<video id="video" autoplay playsinline></video>
+<button id="startBtn">Start Video</button>
+
+<video id="video" playsinline></video>
 
 <script>
   const video = document.getElementById("video");
+  const btn = document.getElementById("startBtn");
 
   let currentUrl = "";
-  let isPlaying = false;
 
   async function fetchVideo() {
     try {
@@ -45,28 +60,25 @@
 
         video.src = currentUrl;
         video.load();
-
-        video.play().then(() => {
-          isPlaying = true;
-          console.log("Playing");
-        }).catch(() => {
-          console.log("Autoplay blocked, tap required");
-        });
       }
-    } catch (err) {
-      console.log("Error fetching video");
+    } catch (e) {
+      console.log("fetch error");
     }
   }
 
-  // 🔥 stable loop (NO flicker)
+  // fetch every 3 sec
   setInterval(fetchVideo, 3000);
 
-  // 👉 mobile audio fix (tap once)
-  document.body.addEventListener("click", () => {
-    if (!isPlaying) {
-      video.play();
-    }
-  });
+  // 🔥 REQUIRED for mobile audio + playback
+  btn.onclick = () => {
+    video.play()
+      .then(() => {
+        btn.style.display = "none";
+      })
+      .catch(() => {
+        alert("Tap again");
+      });
+  };
 
 </script>
 

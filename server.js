@@ -2,23 +2,40 @@ const express = require("express");
 const app = express();
 
 app.use(express.json());
+app.use(express.static("public"));
 
-let videoUrl = "";
+let playlist = [];
+let currentIndex = 0;
 let isPlaying = false;
 
-// GET video + state
+// GET current video + state
 app.get("/video", (req, res) => {
   res.json({
-    url: videoUrl,
+    url: playlist[currentIndex] || "",
     playing: isPlaying
   });
 });
 
-// SET video
-app.post("/play", (req, res) => {
-  videoUrl = req.body.url;
+// ADD video
+app.post("/add", (req, res) => {
+  playlist.push(req.body.url);
+  res.send("Added");
+});
+
+// PLAY (start from first)
+app.post("/start", (req, res) => {
+  currentIndex = 0;
   isPlaying = true;
-  res.send("Video set & playing");
+  res.send("Started");
+});
+
+// NEXT
+app.post("/next", (req, res) => {
+  if (currentIndex < playlist.length - 1) {
+    currentIndex++;
+    isPlaying = true;
+  }
+  res.send("Next");
 });
 
 // PAUSE

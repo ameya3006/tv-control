@@ -1,62 +1,38 @@
 <!DOCTYPE html>
 <html>
-<head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<body style="margin:0;background:black">
 
-<style>
-html, body {
-  margin: 0;
-  height: 100%;
-  background: black;
-  overflow: hidden;
-}
-
-video {
-  width: 100vw;
-  height: 100vh;
-  object-fit: cover;
-}
-</style>
-</head>
-
-<body>
-
-<video id="video" muted autoplay playsinline></video>
+<video id="video" muted playsinline
+style="width:100vw;height:100vh;object-fit:cover;"></video>
 
 <script>
 const video = document.getElementById("video");
 
 let currentUrl = "";
+let lastPlaying = false;
 
 async function sync() {
-  try {
-    const res = await fetch("/video");
-    const data = await res.json();
+  const res = await fetch("/video");
+  const data = await res.json();
 
-    // 🎬 new video
-    if (data.url && data.url !== currentUrl) {
-      currentUrl = data.url;
+  console.log(data);
 
-      video.src = currentUrl;
-      video.load();
+  // 🎬 load new video
+  if (data.url && data.url !== currentUrl) {
+    currentUrl = data.url;
+    video.src = currentUrl;
+    video.load();
+  }
 
-      // 👇 IMPORTANT trick
-      if (data.playing) {
-        video.play().catch(()=>{});
-      } else {
-        video.pause();
-      }
-    }
+  // ▶ play / pause
+  if (data.playing !== lastPlaying) {
+    lastPlaying = data.playing;
 
-    // ▶ control
     if (data.playing) {
-      video.play().catch(()=>{});
+      video.play().catch(e => console.log("Play blocked"));
     } else {
       video.pause();
     }
-
-  } catch(e) {
-    console.log("error");
   }
 }
 

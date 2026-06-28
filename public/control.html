@@ -12,25 +12,19 @@ body {
   color: white;
 }
 
-.container {
-  padding: 20px;
-}
+.container { padding: 20px; }
 
-h1 {
-  font-size: 28px;
-  margin-bottom: 10px;
-}
+h1 { font-size: 28px; }
 
 .card {
   background: rgba(255,255,255,0.05);
   padding: 20px;
   border-radius: 15px;
   margin-bottom: 20px;
-  backdrop-filter: blur(10px);
 }
 
 input {
-  width: 70%;
+  width: 65%;
   padding: 12px;
   border-radius: 10px;
   border: none;
@@ -38,25 +32,29 @@ input {
 
 .add-btn {
   padding: 12px;
-  border: none;
   border-radius: 10px;
   background: linear-gradient(45deg,#9333ea,#ec4899);
   color: white;
+  border: none;
 }
 
 .controls {
   display: flex;
   gap: 10px;
-  flex-wrap: wrap;
 }
 
 .controls button {
   flex: 1;
   padding: 15px;
+  border-radius: 15px;
   border: none;
-  border-radius: 12px;
-  color: white;
   font-weight: bold;
+  color: white;
+  transition: 0.3s;
+}
+
+.controls button:hover {
+  transform: scale(1.1);
 }
 
 .start { background: #22c55e; }
@@ -82,15 +80,15 @@ li {
 <h1>🎬 TV Control Panel</h1>
 
 <div class="card">
-  <input id="url" placeholder="Paste video URL here...">
+  <input id="url" placeholder="Paste video URL">
   <button class="add-btn" onclick="add()">ADD</button>
 </div>
 
 <div class="card controls">
-  <button class="start" onclick="start()">START</button>
-  <button class="play" onclick="play()">PLAY</button>
-  <button class="pause" onclick="pause()">PAUSE</button>
-  <button class="next" onclick="next()">NEXT</button>
+  <button class="start" onclick="start()">⏯ START</button>
+  <button class="play" onclick="play()">▶ PLAY</button>
+  <button class="pause" onclick="pause()">⏸ PAUSE</button>
+  <button class="next" onclick="next()">⏭ NEXT</button>
 </div>
 
 <div class="card">

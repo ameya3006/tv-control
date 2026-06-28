@@ -3,7 +3,16 @@
 <body style="margin:0;background:black;overflow:hidden;">
 
 <video id="v" playsinline muted
-style="width:100vw;height:100vh;object-fit:contain;background:black;">
+style="
+position:fixed;
+top:50%;
+left:50%;
+width:100vh;
+height:100vw;
+transform:translate(-50%, -50%) rotate(90deg);
+object-fit:contain;
+background:black;
+">
 </video>
 
 <script>
@@ -12,26 +21,21 @@ const video = document.getElementById("v");
 
 let lastUrl = "";
 
-// ✅ play only when ready
-video.oncanplay = () => {
-  console.log("Ready");
-};
-
 // 🔁 sync
 setInterval(async () => {
   try {
     const res = await fetch(API + "/video");
     const data = await res.json();
 
-    // load new video
+    // load video only when changed
     if (data.url && data.url !== lastUrl) {
       video.src = data.url;
       video.load();
       lastUrl = data.url;
     }
 
-    // control play/pause
-    if (data.playing && video.readyState >= 3) {
+    // ✅ FIXED autoplay logic
+    if (data.playing === true && video.readyState >= 3) {
       video.play().catch(()=>{});
     } else {
       video.pause();
@@ -47,7 +51,7 @@ video.onended = () => {
   fetch(API + "/next", { method: "POST" });
 };
 
-// 🔊 tap for sound
+// 🔊 tap for audio (mobile rule)
 document.body.addEventListener("click", () => {
   video.muted = false;
   video.play().catch(()=>{});

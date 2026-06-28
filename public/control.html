@@ -11,10 +11,10 @@ style="width:60%;padding:12px;border-radius:10px;border:none;">
 
 <br><br>
 
-<!-- ✅ BUTTONS -->
 <button onclick="start()">START</button>
 <button onclick="play()">PLAY</button>
 <button onclick="pause()">PAUSE</button>
+<button onclick="next()">NEXT</button>
 
 <h3>Playlist</h3>
 <ul id="list"></ul>
@@ -36,6 +36,8 @@ function add() {
     headers: {"Content-Type":"application/json"},
     body: JSON.stringify({ url })
   });
+
+  document.getElementById("url").value = "";
 }
 
 function render() {
@@ -58,7 +60,6 @@ function render() {
   });
 }
 
-// ✅ controls
 function start() {
   fetch(API + "/start", { method: "POST" });
 }
@@ -69,6 +70,10 @@ function play() {
 
 function pause() {
   fetch(API + "/pause", { method: "POST" });
+}
+
+function next() {
+  fetch(API + "/next", { method: "POST" });
 }
 </script>
 

@@ -2,7 +2,8 @@
 <html>
 <body style="margin:0;background:black">
 
-<video id="v" autoplay muted style="width:100vw;height:100vh;object-fit:cover"></video>
+<video id="v" autoplay muted
+style="width:100vw;height:100vh;object-fit:cover"></video>
 
 <script>
 const API = "";
@@ -14,24 +15,22 @@ setInterval(async () => {
   const res = await fetch(API + "/video");
   const data = await res.json();
 
-  // 👉 new video load
   if (data.url && data.url !== lastUrl) {
     video.src = data.url;
     video.load();
-    video.play().catch(() => {});
+    video.play().catch(()=>{});
     lastUrl = data.url;
   }
 
-  // 👉 play/pause control
   if (data.playing) {
-    video.play().catch(() => {});
+    video.play().catch(()=>{});
   } else {
     video.pause();
   }
 
 }, 1000);
 
-// 👉 auto NEXT when video ends
+// 👉 AUTO NEXT
 video.onended = () => {
   fetch(API + "/next", { method: "POST" });
 };

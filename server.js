@@ -1,7 +1,11 @@
 const express = require("express");
+const path = require("path");
+
 const app = express();
 
 app.use(express.json());
+
+// ✅ IMPORTANT: static files serve
 app.use(express.static(__dirname));
 
 let playlist = [];
@@ -12,6 +16,17 @@ let state = {
   isPlaying: false
 };
 
+// ✅ control page (main page)
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "control.html"));
+});
+
+// ✅ optional direct route (fix for your error)
+app.get("/control.html", (req, res) => {
+  res.sendFile(path.join(__dirname, "control.html"));
+});
+
+// tv state
 app.get("/state", (req, res) => {
   res.json(state);
 });
@@ -53,4 +68,6 @@ app.post("/next", (req, res) => {
   res.sendStatus(200);
 });
 
-app.listen(3000, () => console.log("Server running"));
+// ⚠️ Render uses PORT env
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log("Server running on", PORT));

@@ -2,17 +2,8 @@
 <html>
 <body style="margin:0;background:black;overflow:hidden;">
 
-<video id="v" playsinline webkit-playsinline muted
-style="
-position:fixed;
-top:50%;
-left:50%;
-width:100vh;
-height:100vw;
-transform:translate(-50%, -50%) rotate(90deg);
-object-fit:cover;
-background:black;
-">
+<video id="v" playsinline muted
+style="width:100vw;height:100vh;object-fit:contain;background:black;">
 </video>
 
 <script>
@@ -21,25 +12,25 @@ const video = document.getElementById("v");
 
 let lastUrl = "";
 
-// ✅ जबरदस्त fix: wait until video can play
+// ✅ play only when ready
 video.oncanplay = () => {
-  video.play().catch(()=>{});
+  console.log("Ready");
 };
 
-// 🔁 server sync
+// 🔁 sync
 setInterval(async () => {
   try {
     const res = await fetch(API + "/video");
     const data = await res.json();
 
-    // ✅ load video safely
+    // load new video
     if (data.url && data.url !== lastUrl) {
       video.src = data.url;
       video.load();
       lastUrl = data.url;
     }
 
-    // ✅ control play/pause AFTER ready
+    // control play/pause
     if (data.playing && video.readyState >= 3) {
       video.play().catch(()=>{});
     } else {
@@ -47,16 +38,16 @@ setInterval(async () => {
     }
 
   } catch (e) {
-    console.log("Server error", e);
+    console.log(e);
   }
 }, 1000);
 
-// ⏭ next
+// next
 video.onended = () => {
   fetch(API + "/next", { method: "POST" });
 };
 
-// 🔊 enable sound on tap
+// 🔊 tap for sound
 document.body.addEventListener("click", () => {
   video.muted = false;
   video.play().catch(()=>{});

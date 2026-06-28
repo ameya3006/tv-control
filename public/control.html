@@ -1,50 +1,140 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Control</title>
+  <title>TV Control Panel</title>
+  <style>
+    body {
+      background: #0f172a;
+      color: white;
+      font-family: sans-serif;
+      padding: 20px;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+    }
+
+    input {
+      width: 70%;
+      padding: 10px;
+      border-radius: 8px;
+      border: none;
+      margin-right: 10px;
+    }
+
+    button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .add { background: purple; color: white; }
+
+    .controls button {
+      margin: 10px;
+      width: 150px;
+    }
+
+    .start { background: green; }
+    .play { background: blue; }
+    .pause { background: orange; }
+    .next { background: purple; }
+
+    ul {
+      margin-top: 20px;
+    }
+  </style>
 </head>
-<body style="font-family:sans-serif">
 
-<h2>Enter Video URL</h2>
+<body>
 
-<input id="url" type="text" placeholder="Paste video URL" style="width:80%">
-<button onclick="playVideo()">Play</button>
+<h1>📺 TV Control Panel</h1>
 
-<h3>Playlist:</h3>
-<ul id="list"></ul>
+<input id="url" type="text" placeholder="Paste video URL">
+<button class="add" onclick="addVideo()">ADD</button>
+
+<div class="controls">
+  <button class="start" onclick="startVideo()">START</button>
+  <button class="play" onclick="playVideo()">PLAY</button>
+  <button class="pause" onclick="pauseVideo()">PAUSE</button>
+  <button class="next" onclick="nextVideo()">NEXT</button>
+</div>
+
+<h3>📁 Playlist</h3>
+<ul id="playlist"></ul>
 
 <script>
 const API = "https://tv-control.onrender.com";
 
+let playlist = [];
+let currentIndex = 0;
+
+// 👉 ADD button
+function addVideo() {
+  const input = document.getElementById("url");
+  const url = input.value.trim();
+
+  if (!url) return;
+
+  playlist.push(url);
+  renderPlaylist();
+
+  input.value = "";
+}
+
+// 👉 render list
+function renderPlaylist() {
+  const list = document.getElementById("playlist");
+  list.innerHTML = "";
+
+  playlist.forEach((url, i) => {
+    const li = document.createElement("li");
+    li.textContent = (i + 1) + ". " + url;
+    list.appendChild(li);
+  });
+}
+
+// 👉 START
+function startVideo() {
+  if (playlist.length === 0) return;
+
+  currentIndex = 0;
+  sendToTV(playlist[currentIndex]);
+}
+
+// 👉 PLAY
 function playVideo() {
-  const url = document.getElementById("url").value;
+  if (playlist.length === 0) return;
 
-  if (!url) {
-    alert("Enter URL");
-    return;
-  }
+  sendToTV(playlist[currentIndex]);
+}
 
+// 👉 PAUSE
+function pauseVideo() {
+  fetch(API + "/pause", { method: "POST" });
+}
+
+// 👉 NEXT
+function nextVideo() {
+  if (playlist.length === 0) return;
+
+  currentIndex++;
+  if (currentIndex >= playlist.length) currentIndex = 0;
+
+  sendToTV(playlist[currentIndex]);
+}
+
+// 👉 send video to backend
+function sendToTV(url) {
   fetch(API + "/play", {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
     },
     body: JSON.stringify({ url: url })
-  })
-  .then(() => {
-    addToList(url);
-    document.getElementById("url").value = "";
-  })
-  .catch(err => {
-    alert("Error sending request");
-    console.log(err);
   });
-}
-
-function addToList(url) {
-  const li = document.createElement("li");
-  li.textContent = url;
-  document.getElementById("list").appendChild(li);
 }
 </script>
 

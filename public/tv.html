@@ -2,51 +2,39 @@
 <html>
 <body style="margin:0;background:black">
 
-<video id="video"
-muted
-autoplay
-playsinline
-style="width:100vw;height:100vh;object-fit:cover;">
-</video>
+<video id="v" autoplay muted style="width:100vw;height:100vh;object-fit:cover"></video>
 
 <script>
-const video = document.getElementById("video");
+const API = "";
+const video = document.getElementById("v");
 
-let currentUrl = "";
+let lastUrl = "";
 
-async function sync() {
-  try {
-    const res = await fetch("/video");
-    const data = await res.json();
+setInterval(async () => {
+  const res = await fetch(API + "/video");
+  const data = await res.json();
 
-    console.log("DATA:", data);
-
-    // 🎬 new video load
-    if (data.url && data.url !== currentUrl) {
-      currentUrl = data.url;
-
-      video.src = currentUrl;
-      video.load();
-
-      // 💥 FORCE PLAY (main fix)
-      setTimeout(() => {
-        video.play().catch(e => console.log("Play blocked:", e));
-      }, 300);
-    }
-
-    // ▶ control
-    if (data.playing) {
-      video.play().catch(()=>{});
-    } else {
-      video.pause();
-    }
-
-  } catch(e) {
-    console.log("ERROR:", e);
+  // 👉 new video load
+  if (data.url && data.url !== lastUrl) {
+    video.src = data.url;
+    video.load();
+    video.play().catch(() => {});
+    lastUrl = data.url;
   }
-}
 
-setInterval(sync, 1000);
+  // 👉 play/pause control
+  if (data.playing) {
+    video.play().catch(() => {});
+  } else {
+    video.pause();
+  }
+
+}, 1000);
+
+// 👉 auto NEXT when video ends
+video.onended = () => {
+  fetch(API + "/next", { method: "POST" });
+};
 </script>
 
 </body>

@@ -2,7 +2,7 @@
 <html>
 <body style="margin:0;background:black">
 
-<video id="v" muted
+<video id="v"
 style="width:100vw;height:100vh;object-fit:cover"></video>
 
 <script>
@@ -11,19 +11,19 @@ const video = document.getElementById("v");
 
 let lastUrl = "";
 
-// 🔁 server sync
+// 🔁 sync with server
 setInterval(async () => {
   const res = await fetch(API + "/video");
   const data = await res.json();
 
-  // 👉 ALWAYS load video (so black screen नाही)
+  // ✅ load video (no autoplay)
   if (data.url && data.url !== lastUrl) {
     video.src = data.url;
     video.load();
     lastUrl = data.url;
   }
 
-  // 👉 ONLY control play/pause
+  // ✅ play/pause control
   if (data.playing) {
     video.play().catch(()=>{});
   } else {
@@ -32,10 +32,16 @@ setInterval(async () => {
 
 }, 1000);
 
-// 👉 AUTO NEXT
+// 👉 auto next
 video.onended = () => {
   fetch(API + "/next", { method: "POST" });
 };
+
+// 🔊 IMPORTANT: enable audio on first tap
+document.body.addEventListener("click", () => {
+  video.muted = false;
+  video.play().catch(()=>{});
+});
 </script>
 
 </body>

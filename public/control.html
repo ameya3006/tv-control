@@ -1,29 +1,100 @@
 <!DOCTYPE html>
 <html>
-<body style="background:black;color:white;font-family:sans-serif">
+<body style="background:#0f172a;color:white;font-family:sans-serif;text-align:center">
 
-<h1>TV Control</h1>
+<h1 style="margin-top:20px;">📺 TV Control Panel</h1>
 
-<input id="url" placeholder="Paste video URL" style="width:60%">
-<button onclick="add()">ADD</button>
+<input id="url" placeholder="Paste video URL"
+style="
+width:60%;
+padding:12px;
+border-radius:10px;
+border:none;
+outline:none;
+font-size:16px;
+">
 
-<p id="status"></p>
+<button onclick="add()" class="btn add">ADD</button>
 
-<h3>Playlist:</h3>
-<ul id="list"></ul>
+<p id="status" style="margin-top:10px;color:#38bdf8;"></p>
+
+<h3 style="margin-top:30px;">🎵 Playlist</h3>
+<ul id="list" style="list-style:none;padding:0;"></ul>
+
+<br>
+
+<button onclick="start()" class="btn start">START</button>
+<button onclick="play()" class="btn play">PLAY</button>
+<button onclick="pause()" class="btn pause">PAUSE</button>
+
+<style>
+.btn {
+  padding:12px 20px;
+  margin:8px;
+  border:none;
+  border-radius:12px;
+  font-size:16px;
+  cursor:pointer;
+  transition:0.3s;
+  color:white;
+}
+
+/* ADD */
+.add {
+  background:linear-gradient(45deg,#06b6d4,#3b82f6);
+}
+.add:hover {
+  transform:scale(1.05);
+}
+
+/* START */
+.start {
+  background:linear-gradient(45deg,#22c55e,#16a34a);
+}
+.start:hover {
+  transform:scale(1.05);
+}
+
+/* PLAY */
+.play {
+  background:linear-gradient(45deg,#f59e0b,#f97316);
+}
+.play:hover {
+  transform:scale(1.05);
+}
+
+/* PAUSE */
+.pause {
+  background:linear-gradient(45deg,#ef4444,#dc2626);
+}
+.pause:hover {
+  transform:scale(1.05);
+}
+
+/* Playlist items */
+li {
+  background:#1e293b;
+  margin:8px auto;
+  padding:10px;
+  width:60%;
+  border-radius:10px;
+  cursor:pointer;
+  transition:0.3s;
+}
+li:hover {
+  background:#334155;
+}
+</style>
 
 <script>
 const API = "";
 
-// 👉 DEBUG log function
 function log(msg) {
   document.getElementById("status").innerText = msg;
-  console.log(msg);
 }
 
 let playlist = [];
 
-// 👉 ADD FUNCTION (WITH DEBUG)
 function add() {
   log("ADD clicked");
 
@@ -35,40 +106,49 @@ function add() {
     return;
   }
 
-  log("URL = " + url);
-
-  // 👉 push in array
   playlist.push(url);
-
-  log("Added to playlist array");
-
   render();
 
-  // 👉 send to server
   fetch(API + "/set", {
     method: "POST",
     headers: {"Content-Type":"application/json"},
     body: JSON.stringify({ url })
-  })
-  .then(() => log("Sent to server"))
-  .catch(err => log("Server error: " + err));
+  });
 
   input.value = "";
 }
 
-// 👉 RENDER FUNCTION
 function render() {
   const ul = document.getElementById("list");
   ul.innerHTML = "";
 
-  playlist.forEach((item, i) => {
+  playlist.forEach((item) => {
     const li = document.createElement("li");
     li.innerText = item;
+
+    li.onclick = () => {
+      fetch(API + "/set", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({ url: item })
+      });
+    };
 
     ul.appendChild(li);
   });
 
-  log("Playlist rendered: " + playlist.length);
+  log("Playlist: " + playlist.length);
+}
+
+// controls
+function start() {
+  fetch(API + "/start", { method: "POST" });
+}
+function play() {
+  fetch(API + "/resume", { method: "POST" });
+}
+function pause() {
+  fetch(API + "/pause", { method: "POST" });
 }
 </script>
 

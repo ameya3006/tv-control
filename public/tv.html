@@ -2,63 +2,24 @@
 <html>
 <body style="margin:0;background:black;overflow:hidden;">
 
-<video id="v" playsinline muted autoplay
-style="
-position:fixed;
-top:50%;
-left:50%;
-width:100vh;
-height:100vw;
-transform:translate(-50%, -50%) rotate(90deg);
-object-fit:contain;
-background:black;
-">
+<video id="v" playsinline webkit-playsinline
+style="width:100vw;height:100vh;object-fit:contain;background:black;">
 </video>
 
 <script>
-const API = "";
 const video = document.getElementById("v");
 
-let lastUrl = "";
+// 👉 TEST URL (IMPORTANT)
+video.src = "https://www.w3schools.com/html/mov_bbb.mp4";
 
-// 🔁 sync
-setInterval(async () => {
+// ❗ ONLY USER CLICK WILL START VIDEO
+document.body.addEventListener("click", async () => {
   try {
-    const res = await fetch(API + "/video");
-    const data = await res.json();
-
-    // load video
-    if (data.url && data.url !== lastUrl) {
-      video.src = data.url;
-      video.load();
-
-      // 🔥 FORCE PLAY (muted allowed)
-      video.muted = true;
-      video.play().catch(()=>{});
-
-      lastUrl = data.url;
-    }
-
-    // control
-    if (data.playing === true) {
-      video.play().catch(()=>{});
-    } else {
-      video.pause();
-    }
-
-  } catch (e) {
-    console.log(e);
+    await video.play();
+    console.log("PLAY SUCCESS");
+  } catch(e) {
+    console.log("PLAY FAILED", e);
   }
-}, 1000);
-
-// next
-video.onended = () => {
-  fetch(API + "/next", { method: "POST" });
-};
-
-// 🔊 tap = enable sound
-document.body.addEventListener("click", () => {
-  video.muted = false;
 });
 </script>
 

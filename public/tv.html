@@ -1,46 +1,44 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>TV</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      background: black;
-      overflow: hidden;
-    }
+<style>
+html, body {
+  margin: 0;
+  height: 100%;
+  background: black;
+  overflow: hidden;
+}
 
-    video {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 100vh;
-      height: 100vw;
-      transform: translate(-50%, -50%) rotate(90deg);
-      object-fit: cover;
-      background: black;
-    }
+video {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100vh;
+  height: 100vw;
+  transform: translate(-50%, -50%) rotate(90deg);
+  object-fit: cover;
+  background: black;
+}
 
-    #startBtn {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      padding: 15px 25px;
-      font-size: 18px;
-      background: white;
-      border: none;
-      border-radius: 10px;
-      z-index: 10;
-    }
-  </style>
+#startBtn {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 15px 25px;
+  font-size: 18px;
+  background: white;
+  border: none;
+  border-radius: 10px;
+}
+</style>
 </head>
 
 <body>
 
-<button id="startBtn">Start Video</button>
+<button id="startBtn">Start</button>
 
 <video id="video" playsinline></video>
 
@@ -49,53 +47,48 @@ const video = document.getElementById("video");
 const btn = document.getElementById("startBtn");
 
 let currentUrl = "";
-let started = false;
+let lastState = false;
 
-// 🔥 fetch video from backend
-async function fetchVideo() {
+// 🔁 fetch loop
+async function sync() {
   try {
     const res = await fetch("/video");
     const data = await res.json();
 
+    // 🎬 new video
     if (data.url && data.url !== currentUrl) {
       currentUrl = data.url;
-
       video.src = currentUrl;
       video.load();
+    }
 
-      // 🔥 auto play only if user already clicked start
-      if (started) {
-        playVideo();
+    // ▶️ play/pause sync
+    if (data.playing !== lastState) {
+      lastState = data.playing;
+
+      if (data.playing) {
+        video.play().catch(()=>{});
+      } else {
+        video.pause();
       }
     }
-  } catch (e) {
-    console.log("fetch error");
+
+  } catch(e) {
+    console.log("error");
   }
 }
 
-// every 3 sec
-setInterval(fetchVideo, 3000);
+setInterval(sync, 2000);
 
-// 🔥 main play function
-function playVideo() {
+// 👇 REQUIRED for mobile audio
+btn.onclick = () => {
   video.muted = false;
 
-  video.play()
-    .then(() => {
-      console.log("playing with audio");
-    })
-    .catch(() => {
-      console.log("play failed");
-    });
-}
-
-// 🔥 user interaction (MOST IMPORTANT)
-btn.onclick = () => {
-  started = true;
-
-  playVideo();
-
-  btn.style.display = "none";
+  video.play().then(() => {
+    btn.style.display = "none";
+  }).catch(() => {
+    alert("Tap again");
+  });
 };
 </script>
 

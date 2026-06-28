@@ -21,42 +21,38 @@ video {
 
 <body>
 
-<video id="video" muted playsinline></video>
+<video id="video" muted autoplay playsinline></video>
 
 <script>
 const video = document.getElementById("video");
 
 let currentUrl = "";
-let lastState = false;
 
 async function sync() {
   try {
     const res = await fetch("/video");
     const data = await res.json();
 
-    // 🎬 load video (NO autoplay)
+    // 🎬 new video
     if (data.url && data.url !== currentUrl) {
       currentUrl = data.url;
+
       video.src = currentUrl;
       video.load();
 
-      // small trick to avoid blank
-      video.pause();
-    }
-
-    // ▶ play / pause control
-    if (data.playing !== lastState) {
-      lastState = data.playing;
-
+      // 👇 IMPORTANT trick
       if (data.playing) {
-        video.play().then(()=>{
-          console.log("playing");
-        }).catch(()=>{
-          console.log("play blocked");
-        });
+        video.play().catch(()=>{});
       } else {
         video.pause();
       }
+    }
+
+    // ▶ control
+    if (data.playing) {
+      video.play().catch(()=>{});
+    } else {
+      video.pause();
     }
 
   } catch(e) {

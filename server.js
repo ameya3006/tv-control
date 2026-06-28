@@ -4,50 +4,43 @@ const app = express();
 app.use(express.json());
 app.use(express.static("public"));
 
-let playlist = [];
-let currentIndex = 0;
-let isPlaying = false;
+let currentVideo = "";
+let isPlaying = false; // ✅ default false ठेव
 
-// GET current video + state
-app.get("/video", (req, res) => {
-  res.json({
-    url: playlist[currentIndex] || "",
-    playing: isPlaying
-  });
-});
-
-// ADD video
-app.post("/add", (req, res) => {
-  playlist.push(req.body.url);
-  res.send("Added");
-});
-
-// PLAY (start from first)
-app.post("/start", (req, res) => {
-  currentIndex = 0;
-  isPlaying = true;
-  res.send("Started");
-});
-
-// NEXT
-app.post("/next", (req, res) => {
-  if (currentIndex < playlist.length - 1) {
-    currentIndex++;
-    isPlaying = true;
+// 🎬 PLAY (ONLY when button clicked)
+app.post("/play", (req, res) => {
+  if (req.body.url) {
+    currentVideo = req.body.url;
   }
-  res.send("Next");
+  isPlaying = true; // ✅ इथेच true होईल
+  res.send("Playing");
 });
 
-// PAUSE
+// ⏸ PAUSE
 app.post("/pause", (req, res) => {
   isPlaying = false;
   res.send("Paused");
 });
 
-// RESUME
+// ▶ RESUME
 app.post("/resume", (req, res) => {
   isPlaying = true;
   res.send("Resumed");
+});
+
+// 📡 TV API
+app.get("/video", (req, res) => {
+  res.json({
+    url: currentVideo,
+    playing: isPlaying
+  });
+});
+
+// ❗ RESET when server starts (IMPORTANT)
+app.get("/reset", (req, res) => {
+  isPlaying = false;
+  currentVideo = "";
+  res.send("Reset done");
 });
 
 app.listen(3000, () => console.log("Server running"));

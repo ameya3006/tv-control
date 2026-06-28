@@ -2,7 +2,7 @@
 <html>
 <body style="margin:0;background:black;overflow:hidden;">
 
-<video id="v" playsinline muted
+<video id="v" playsinline muted autoplay
 style="
 position:fixed;
 top:50%;
@@ -20,9 +20,8 @@ const API = "";
 const video = document.getElementById("v");
 
 let lastUrl = "";
-let userInteracted = false; // 🔥 MAIN FIX
 
-// 🔁 server sync
+// 🔁 sync
 setInterval(async () => {
   try {
     const res = await fetch(API + "/video");
@@ -32,21 +31,19 @@ setInterval(async () => {
     if (data.url && data.url !== lastUrl) {
       video.src = data.url;
       video.load();
+
+      // 🔥 FORCE PLAY (muted allowed)
+      video.muted = true;
+      video.play().catch(()=>{});
+
       lastUrl = data.url;
     }
 
-    // ❗ BEFORE USER TAP → DO NOTHING
-    if (!userInteracted) return;
-
-    // ✅ control after interaction
-    if (data.playing === true && video.readyState >= 3) {
-      if (video.paused) {
-        video.play().catch(()=>{});
-      }
+    // control
+    if (data.playing === true) {
+      video.play().catch(()=>{});
     } else {
-      if (!video.paused) {
-        video.pause();
-      }
+      video.pause();
     }
 
   } catch (e) {
@@ -59,12 +56,9 @@ video.onended = () => {
   fetch(API + "/next", { method: "POST" });
 };
 
-// 👆 FIRST TAP = UNLOCK SYSTEM
+// 🔊 tap = enable sound
 document.body.addEventListener("click", () => {
-  if (!userInteracted) {
-    userInteracted = true;
-    video.muted = false;
-  }
+  video.muted = false;
 });
 </script>
 

@@ -8,17 +8,8 @@ html, body {
   margin: 0;
   height: 100%;
   background: black;
-  overflow: hidden;
 }
 
-/* 🔥 force landscape look */
-body {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-/* video full screen */
 video {
   width: 100vw;
   height: 100vh;
@@ -35,16 +26,13 @@ video {
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 20px;
-  z-index: 10;
 }
 </style>
 </head>
 
 <body>
 
-<div id="tap">👉 Tap to Enable Audio</div>
-
+<div id="tap">Tap to enable audio</div>
 <video id="video" playsinline preload="auto"></video>
 
 <script>
@@ -54,20 +42,19 @@ const tap = document.getElementById("tap");
 let lastUrl = "";
 let isPlayingNow = false;
 
-// 🔥 USER TAP REQUIRED FOR AUDIO
-tap.addEventListener("click", () => {
+// enable audio
+tap.onclick = () => {
   video.muted = false;
   video.play().then(() => {
     tap.style.display = "none";
-  }).catch(() => {});
-});
+  }).catch(()=>{});
+};
 
 async function loadState() {
   try {
     const res = await fetch("/state");
     const data = await res.json();
 
-    // set video only if changed
     if (data.url && lastUrl !== data.url) {
       lastUrl = data.url;
       video.src = data.url;
@@ -75,25 +62,22 @@ async function loadState() {
       isPlayingNow = false;
     }
 
-    // play
     if (data.isPlaying && !isPlayingNow) {
-      video.muted = true; // autoplay allow
+      video.muted = true;
       video.play().then(() => {
         isPlayingNow = true;
       }).catch(()=>{});
     }
 
-    // pause
     if (!data.isPlaying && isPlayingNow) {
       video.pause();
       isPlayingNow = false;
     }
 
-  } catch (e) {
-    console.log("error");
-  }
+  } catch (e) {}
 }
 
+// smooth polling
 setInterval(loadState, 2000);
 </script>
 

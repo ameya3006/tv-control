@@ -14,8 +14,6 @@ body {
 
 .container { padding: 20px; }
 
-h1 { font-size: 28px; }
-
 .card {
   background: rgba(255,255,255,0.05);
   padding: 20px;
@@ -30,31 +28,19 @@ input {
   border: none;
 }
 
-.add-btn {
+button {
   padding: 12px;
   border-radius: 10px;
-  background: linear-gradient(45deg,#9333ea,#ec4899);
-  color: white;
   border: none;
+  color: white;
+  font-weight: bold;
 }
+
+.add-btn { background: #9333ea; }
 
 .controls {
   display: flex;
   gap: 10px;
-}
-
-.controls button {
-  flex: 1;
-  padding: 15px;
-  border-radius: 15px;
-  border: none;
-  font-weight: bold;
-  color: white;
-  transition: 0.3s;
-}
-
-.controls button:hover {
-  transform: scale(1.1);
 }
 
 .start { background: #22c55e; }
@@ -77,7 +63,7 @@ li {
 
 <div class="container">
 
-<h1>🎬 TV Control Panel</h1>
+<h1>🎬 TV Control</h1>
 
 <div class="card">
   <input id="url" placeholder="Paste video URL">
@@ -85,14 +71,14 @@ li {
 </div>
 
 <div class="card controls">
-  <button class="start" onclick="start()">⏯ START</button>
-  <button class="play" onclick="play()">▶ PLAY</button>
-  <button class="pause" onclick="pause()">⏸ PAUSE</button>
-  <button class="next" onclick="next()">⏭ NEXT</button>
+  <button class="start" onclick="start()">START</button>
+  <button class="play" onclick="play()">PLAY</button>
+  <button class="pause" onclick="pause()">PAUSE</button>
+  <button class="next" onclick="next()">NEXT</button>
 </div>
 
 <div class="card">
-  <h3>📂 Playlist</h3>
+  <h3>Playlist</h3>
   <ul id="list"></ul>
 </div>
 

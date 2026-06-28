@@ -2,7 +2,7 @@
 <html>
 <body style="margin:0;background:black;overflow:hidden;">
 
-<video id="v"
+<video id="v" playsinline webkit-playsinline muted
 style="
 position:fixed;
 top:50%;
@@ -21,21 +21,26 @@ const video = document.getElementById("v");
 
 let lastUrl = "";
 
+// ✅ जबरदस्त fix: wait until video can play
+video.oncanplay = () => {
+  video.play().catch(()=>{});
+};
+
 // 🔁 server sync
 setInterval(async () => {
   try {
     const res = await fetch(API + "/video");
     const data = await res.json();
 
-    // ✅ load video (no autoplay)
+    // ✅ load video safely
     if (data.url && data.url !== lastUrl) {
       video.src = data.url;
       video.load();
       lastUrl = data.url;
     }
 
-    // ✅ play / pause control
-    if (data.playing) {
+    // ✅ control play/pause AFTER ready
+    if (data.playing && video.readyState >= 3) {
       video.play().catch(()=>{});
     } else {
       video.pause();
@@ -46,12 +51,12 @@ setInterval(async () => {
   }
 }, 1000);
 
-// ⏭ auto next
+// ⏭ next
 video.onended = () => {
   fetch(API + "/next", { method: "POST" });
 };
 
-// 🔊 enable audio on tap (mobile rule)
+// 🔊 enable sound on tap
 document.body.addEventListener("click", () => {
   video.muted = false;
   video.play().catch(()=>{});

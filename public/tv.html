@@ -2,6 +2,7 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <style>
 html, body {
   margin: 0;
@@ -20,31 +21,37 @@ video {
 
 <body>
 
-<video id="video" playsinline></video>
+<video id="video" autoplay playsinline muted></video>
 
 <script>
 const video = document.getElementById("video");
 
-async function sync() {
+async function loadState() {
   const res = await fetch("/state");
   const data = await res.json();
 
-  // URL change
   if (data.url && video.src !== data.url) {
     video.src = data.url;
     video.load();
   }
 
-  // play/pause
   if (data.isPlaying) {
-    video.muted = false; // 🔊 AUDIO FIX
-    video.play().catch(()=>{});
+    video.muted = true; // autoplay hack
+    video.play().then(() => {
+      // unmute after play
+      setTimeout(() => {
+        video.muted = false;
+      }, 1000);
+    }).catch(() => {
+      console.log("Tap needed");
+    });
   } else {
     video.pause();
   }
 }
 
-setInterval(sync, 1000);
+// refresh every 1 sec
+setInterval(loadState, 1000);
 </script>
 
 </body>

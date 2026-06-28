@@ -2,7 +2,7 @@
 <html>
 <body style="margin:0;background:black">
 
-<video id="v" autoplay muted
+<video id="v" muted
 style="width:100vw;height:100vh;object-fit:cover"></video>
 
 <script>
@@ -11,17 +11,19 @@ const video = document.getElementById("v");
 
 let lastUrl = "";
 
+// 🔁 server check
 setInterval(async () => {
   const res = await fetch(API + "/video");
   const data = await res.json();
 
+  // 👉 ONLY load (NO autoplay)
   if (data.url && data.url !== lastUrl) {
     video.src = data.url;
     video.load();
-    video.play().catch(()=>{});
     lastUrl = data.url;
   }
 
+  // 👉 PLAY only when START क्लिक
   if (data.playing) {
     video.play().catch(()=>{});
   } else {
@@ -30,7 +32,7 @@ setInterval(async () => {
 
 }, 1000);
 
-// 👉 AUTO NEXT
+// 👉 AUTO NEXT (only if playing)
 video.onended = () => {
   fetch(API + "/next", { method: "POST" });
 };

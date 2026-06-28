@@ -15,60 +15,53 @@ video {
   width: 100vw;
   height: 100vh;
   object-fit: contain;
-  will-change: transform;
 }
 </style>
 </head>
 
 <body>
 
-<video id="video" autoplay playsinline muted preload="auto"></video>
+<video id="video" playsinline muted preload="auto"></video>
 
 <script>
 const video = document.getElementById("video");
 
 let lastUrl = "";
-let lastPlayState = null;
+let isPlayingNow = false;
 
 async function loadState() {
   try {
     const res = await fetch("/state");
     const data = await res.json();
 
-    // ✅ change video ONLY when URL changes
+    // ✅ set video only when changed
     if (data.url && lastUrl !== data.url) {
       lastUrl = data.url;
       video.src = data.url;
       video.load();
+      isPlayingNow = false; // reset
     }
 
-    // ✅ play/pause only when changed
-    if (data.isPlaying !== lastPlayState) {
-      lastPlayState = data.isPlaying;
-
-      if (data.isPlaying) {
-        video.play().catch(() => {});
-      } else {
-        video.pause();
-      }
+    // ✅ PLAY only once
+    if (data.isPlaying && !isPlayingNow) {
+      video.play().then(() => {
+        isPlayingNow = true;
+      }).catch(() => {});
     }
 
-  } catch (err) {
-    console.log("Server issue...");
+    // ✅ PAUSE only once
+    if (!data.isPlaying && isPlayingNow) {
+      video.pause();
+      isPlayingNow = false;
+    }
+
+  } catch (e) {
+    console.log("error");
   }
 }
 
-// 🔥 less API calls = smooth playback
-setInterval(loadState, 3000);
-
-// debug (optional)
-video.addEventListener("waiting", () => {
-  console.log("Buffering...");
-});
-
-video.addEventListener("playing", () => {
-  console.log("Playing...");
-});
+// 🔥 slower polling = no flicker
+setInterval(loadState, 2000);
 </script>
 
 </body>

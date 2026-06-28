@@ -1,7 +1,6 @@
 const express = require("express");
-const path = require("path");
-
 const app = express();
+
 app.use(express.json());
 app.use(express.static(__dirname));
 
@@ -13,24 +12,19 @@ let state = {
   isPlaying: false
 };
 
-// main page
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "control.html"));
+app.get("/state", (req, res) => {
+  res.json(state);
 });
 
-// state
-app.get("/state", (req, res) => res.json(state));
-
-// add video
 app.post("/add", (req, res) => {
   playlist.push(req.body.url);
   res.sendStatus(200);
 });
 
-// playlist
-app.get("/playlist", (req, res) => res.json(playlist));
+app.get("/playlist", (req, res) => {
+  res.json(playlist);
+});
 
-// controls
 app.post("/start", (req, res) => {
   if (playlist.length > 0) {
     current = 0;
@@ -59,5 +53,4 @@ app.post("/next", (req, res) => {
   res.sendStatus(200);
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log("Running on", PORT));
+app.listen(3000, () => console.log("Server running"));

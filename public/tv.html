@@ -15,14 +15,13 @@ video {
   width: 100vw;
   height: 100vh;
   object-fit: cover;
-  background: black;
 }
 </style>
 </head>
 
 <body>
 
-<video id="video" autoplay muted playsinline></video>
+<video id="video" muted playsinline></video>
 
 <script>
 const video = document.getElementById("video");
@@ -35,17 +34,14 @@ async function sync() {
     const res = await fetch("/video");
     const data = await res.json();
 
-    // new video load
+    // 🎬 फक्त load कर (play नाही)
     if (data.url && data.url !== currentUrl) {
       currentUrl = data.url;
-
       video.src = currentUrl;
       video.load();
-
-      video.play().catch(()=>{});
     }
 
-    // play/pause control
+    // ▶ play/pause control
     if (data.playing !== lastState) {
       lastState = data.playing;
 
@@ -56,12 +52,9 @@ async function sync() {
       }
     }
 
-  } catch(e) {
-    console.log("error");
-  }
+  } catch(e) {}
 }
 
-// fast sync
 setInterval(sync, 1500);
 </script>
 

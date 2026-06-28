@@ -1,52 +1,62 @@
 <!DOCTYPE html>
 <html>
-<body style="background:#0b132b;color:white;font-family:sans-serif">
+<body style="background:black;color:white;font-family:sans-serif">
 
-<h1>TV Control Panel</h1>
+<h1>TV Control</h1>
 
 <input id="url" placeholder="Paste video URL" style="width:60%">
 <button onclick="add()">ADD</button>
 
-<br><br>
+<p id="status"></p>
 
-<button onclick="start()">START</button>
-<button onclick="play()">PLAY</button>
-<button onclick="pause()">PAUSE</button>
-
-<h2>Playlist</h2>
+<h3>Playlist:</h3>
 <ul id="list"></ul>
 
 <script>
 const API = "";
 
-// 👉 LOCAL playlist (UI साठी)
+// 👉 DEBUG log function
+function log(msg) {
+  document.getElementById("status").innerText = msg;
+  console.log(msg);
+}
+
 let playlist = [];
 
-// 👉 ADD function (FIXED)
+// 👉 ADD FUNCTION (WITH DEBUG)
 function add() {
+  log("ADD clicked");
+
   const input = document.getElementById("url");
   const url = input.value.trim();
 
   if (!url) {
-    alert("URL टाक आधी!");
+    log("URL empty!");
     return;
   }
 
-  // 👉 UI मध्ये add कर
+  log("URL = " + url);
+
+  // 👉 push in array
   playlist.push(url);
+
+  log("Added to playlist array");
+
   render();
 
-  // 👉 backend ला पाठव (पहिला video set करायला)
+  // 👉 send to server
   fetch(API + "/set", {
     method: "POST",
     headers: {"Content-Type":"application/json"},
     body: JSON.stringify({ url })
-  });
+  })
+  .then(() => log("Sent to server"))
+  .catch(err => log("Server error: " + err));
 
   input.value = "";
 }
 
-// 👉 UI render function (MOST IMPORTANT)
+// 👉 RENDER FUNCTION
 function render() {
   const ul = document.getElementById("list");
   ul.innerHTML = "";
@@ -55,30 +65,10 @@ function render() {
     const li = document.createElement("li");
     li.innerText = item;
 
-    // 👉 click केल्यावर तो video select होईल
-    li.onclick = () => {
-      fetch(API + "/set", {
-        method: "POST",
-        headers: {"Content-Type":"application/json"},
-        body: JSON.stringify({ url: item })
-      });
-    };
-
     ul.appendChild(li);
   });
-}
 
-// controls
-function start() {
-  fetch(API + "/start", { method: "POST" });
-}
-
-function play() {
-  fetch(API + "/resume", { method: "POST" });
-}
-
-function pause() {
-  fetch(API + "/pause", { method: "POST" });
+  log("Playlist rendered: " + playlist.length);
 }
 </script>
 

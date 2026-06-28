@@ -1,29 +1,55 @@
 <!DOCTYPE html>
 <html>
-<body style="font-family:sans-serif;text-align:center">
+<head>
+<title>TV Control Panel</title>
+</head>
 
-<h2>TV Control</h2>
+<body style="background:#0b132b;color:white;font-family:sans-serif">
 
-<input id="url" placeholder="Enter video URL" style="width:80%;padding:10px"><br><br>
+<h1>📺 TV Control Panel</h1>
 
-<button onclick="playVideo()">▶ Play</button>
-<button onclick="pauseVideo()">⏸ Pause</button>
+<input id="url" placeholder="Paste video URL" style="width:60%">
+<button onclick="add()">ADD</button>
+
+<br><br>
+
+<button onclick="start()" style="background:green;color:white">START</button>
+<button onclick="play()" style="background:blue;color:white">PLAY</button>
+<button onclick="pause()" style="background:orange;color:black">PAUSE</button>
+<button onclick="next()" style="background:purple;color:white">NEXT</button>
 
 <script>
-function playVideo() {
+const API = "";
+
+// 👉 ADD URL
+function add() {
   const url = document.getElementById("url").value;
 
-  fetch("/play", {
+  fetch(API + "/set", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
+    headers: {"Content-Type": "application/json"},
     body: JSON.stringify({ url })
   });
 }
 
-function pauseVideo() {
-  fetch("/pause", { method: "POST" });
+// 👉 START (IMPORTANT FIX)
+function start() {
+  fetch(API + "/start", { method: "POST" });
+}
+
+// 👉 PLAY
+function play() {
+  fetch(API + "/resume", { method: "POST" });
+}
+
+// 👉 PAUSE
+function pause() {
+  fetch(API + "/pause", { method: "POST" });
+}
+
+// 👉 NEXT (optional)
+function next() {
+  fetch(API + "/next", { method: "POST" });
 }
 </script>
 

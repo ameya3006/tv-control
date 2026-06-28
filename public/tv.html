@@ -11,23 +11,23 @@ const video = document.getElementById("v");
 
 let lastUrl = "";
 
-// 🔁 check server
+// 🔁 server sync
 setInterval(async () => {
   const res = await fetch(API + "/video");
   const data = await res.json();
 
-  // ❌ START नसेल तर काहीच करू नको
-  if (!data.playing) {
-    video.pause();
-    return;
-  }
-
-  // ✅ START झाल्यावरच load + play
+  // 👉 ALWAYS load video (so black screen नाही)
   if (data.url && data.url !== lastUrl) {
     video.src = data.url;
     video.load();
-    video.play().catch(()=>{});
     lastUrl = data.url;
+  }
+
+  // 👉 ONLY control play/pause
+  if (data.playing) {
+    video.play().catch(()=>{});
+  } else {
+    video.pause();
   }
 
 }, 1000);

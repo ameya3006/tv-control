@@ -4,8 +4,6 @@ const path = require("path");
 const app = express();
 
 app.use(express.json());
-
-// ✅ static folder (MOST IMPORTANT)
 app.use(express.static(path.join(__dirname, "public")));
 
 let playlist = [];
@@ -20,7 +18,9 @@ let state = {
 app.get("/state", (req, res) => res.json(state));
 
 app.post("/add", (req, res) => {
-  playlist.push(req.body.url);
+  if (req.body.url) {
+    playlist.push(req.body.url);
+  }
   res.sendStatus(200);
 });
 
@@ -54,7 +54,7 @@ app.post("/next", (req, res) => {
   res.sendStatus(200);
 });
 
-// default route
+// default
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public/control.html"));
 });

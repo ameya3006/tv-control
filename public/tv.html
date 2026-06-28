@@ -1,88 +1,73 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <title>TV</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <style>
     html, body {
       margin: 0;
+      padding: 0;
       background: black;
-      height: 100%;
       overflow: hidden;
     }
 
     video {
-      width: 100vw;
-      height: 100vh;
-      object-fit: cover;
-      transform: rotate(90deg); /* 🔥 force landscape */
-    }
-
-    .tap {
       position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
+      top: 50%;
+      left: 50%;
+      width: 100vh;      /* 🔥 magic */
+      height: 100vw;
+      transform: translate(-50%, -50%) rotate(90deg);
+      object-fit: cover;
+      background: black;
     }
   </style>
 </head>
 
 <body>
 
-<video id="video" playsinline></video>
-<div class="tap" onclick="startVideo()"></div>
+<video id="video" autoplay playsinline></video>
 
 <script>
-let video = document.getElementById("video");
+  const video = document.getElementById("video");
 
-let lastUrl = "";
-let isPlayingNow = false;
+  let currentUrl = "";
+  let isPlaying = false;
 
-// 🔥 USER TAP REQUIRED FOR AUDIO
-function startVideo() {
-  video.play().then(() => {
-    video.muted = false;
-  }).catch(()=>{});
-}
+  async function fetchVideo() {
+    try {
+      const res = await fetch("/video");
+      const data = await res.json();
 
-// 🔥 SYNC LOOP
-setInterval(async () => {
-  try {
-    let res = await fetch("/state");
-    let data = await res.json();
+      if (data.url && data.url !== currentUrl) {
+        currentUrl = data.url;
 
-    // 🎬 NEW VIDEO LOAD
-    if (data.url && lastUrl !== data.url) {
-      lastUrl = data.url;
+        video.src = currentUrl;
+        video.load();
 
-      video.src = data.url;
-      video.load();
-
-      isPlayingNow = false;
-      video.muted = false; // 🔥 fix audio
+        video.play().then(() => {
+          isPlaying = true;
+          console.log("Playing");
+        }).catch(() => {
+          console.log("Autoplay blocked, tap required");
+        });
+      }
+    } catch (err) {
+      console.log("Error fetching video");
     }
+  }
 
-    // ▶ PLAY
-    if (data.isPlaying && !isPlayingNow) {
-      video.play().then(() => {
-        isPlayingNow = true;
+  // 🔥 stable loop (NO flicker)
+  setInterval(fetchVideo, 3000);
 
-        setTimeout(() => {
-          video.muted = false;
-        }, 200);
-
-      }).catch(()=>{});
+  // 👉 mobile audio fix (tap once)
+  document.body.addEventListener("click", () => {
+    if (!isPlaying) {
+      video.play();
     }
+  });
 
-    // ⏸ PAUSE
-    if (!data.isPlaying && isPlayingNow) {
-      video.pause();
-      isPlayingNow = false;
-    }
-
-  } catch(e) {}
-}, 1000);
 </script>
 
 </body>

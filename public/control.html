@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html>
-<body style="background:#0b132b;color:white">
+<body style="background:#0b132b;color:white;font-family:sans-serif">
 
 <h1>TV Control Panel</h1>
 
@@ -13,21 +13,62 @@
 <button onclick="play()">PLAY</button>
 <button onclick="pause()">PAUSE</button>
 
+<h2>Playlist</h2>
+<ul id="list"></ul>
+
 <script>
 const API = "";
 
-// फक्त URL save
+// 👉 LOCAL playlist (UI साठी)
+let playlist = [];
+
+// 👉 ADD function (FIXED)
 function add() {
+  const input = document.getElementById("url");
+  const url = input.value.trim();
+
+  if (!url) {
+    alert("URL टाक आधी!");
+    return;
+  }
+
+  // 👉 UI मध्ये add कर
+  playlist.push(url);
+  render();
+
+  // 👉 backend ला पाठव (पहिला video set करायला)
   fetch(API + "/set", {
     method: "POST",
     headers: {"Content-Type":"application/json"},
-    body: JSON.stringify({
-      url: document.getElementById("url").value
-    })
+    body: JSON.stringify({ url })
+  });
+
+  input.value = "";
+}
+
+// 👉 UI render function (MOST IMPORTANT)
+function render() {
+  const ul = document.getElementById("list");
+  ul.innerHTML = "";
+
+  playlist.forEach((item, i) => {
+    const li = document.createElement("li");
+    li.innerText = item;
+
+    // 👉 click केल्यावर तो video select होईल
+    li.onclick = () => {
+      fetch(API + "/set", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({ url: item })
+      });
+    };
+
+    ul.appendChild(li);
   });
 }
 
-// START = play true
+// controls
 function start() {
   fetch(API + "/start", { method: "POST" });
 }

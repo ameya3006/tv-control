@@ -2,16 +2,8 @@
 <html>
 <body style="margin:0;background:black;overflow:hidden;">
 
-<video id="v" playsinline
-style="
-position:fixed;
-top:50%;
-left:50%;
-max-width:100vh;
-max-height:100vw;
-transform:translate(-50%, -50%) rotate(90deg);
-background:black;
-">
+<video id="v" playsinline webkit-playsinline
+style="width:100vw;height:100vh;object-fit:contain;background:black;">
 </video>
 
 <script>
@@ -20,28 +12,28 @@ const video = document.getElementById("v");
 
 let lastUrl = "";
 
-// 🔁 server sync
+// 🔁 sync
 setInterval(async () => {
   try {
     const res = await fetch(API + "/video");
     const data = await res.json();
 
-    // ✅ load video
+    // ✅ ALWAYS load video first
     if (data.url && data.url !== lastUrl) {
       video.src = data.url;
       video.load();
       lastUrl = data.url;
     }
 
-    // ✅ play / pause
-    if (data.playing) {
+    // ⚠️ play only if ready
+    if (data.playing && video.readyState >= 2) {
       video.play().catch(()=>{});
     } else {
       video.pause();
     }
 
-  } catch (e) {
-    console.log("error", e);
+  } catch(e) {
+    console.log(e);
   }
 }, 1000);
 
@@ -50,7 +42,7 @@ video.onended = () => {
   fetch(API + "/next", { method: "POST" });
 };
 
-// 🔊 audio enable
+// 🔊 audio fix (MANDATORY for mobile)
 document.body.addEventListener("click", () => {
   video.muted = false;
   video.play().catch(()=>{});

@@ -23,7 +23,6 @@
       background: black;
     }
 
-    /* tap to start button */
     #startBtn {
       position: absolute;
       top: 50%;
@@ -34,6 +33,7 @@
       background: white;
       border: none;
       border-radius: 10px;
+      z-index: 10;
     }
   </style>
 </head>
@@ -45,41 +45,58 @@
 <video id="video" playsinline></video>
 
 <script>
-  const video = document.getElementById("video");
-  const btn = document.getElementById("startBtn");
+const video = document.getElementById("video");
+const btn = document.getElementById("startBtn");
 
-  let currentUrl = "";
+let currentUrl = "";
+let started = false;
 
-  async function fetchVideo() {
-    try {
-      const res = await fetch("/video");
-      const data = await res.json();
+// 🔥 fetch video from backend
+async function fetchVideo() {
+  try {
+    const res = await fetch("/video");
+    const data = await res.json();
 
-      if (data.url && data.url !== currentUrl) {
-        currentUrl = data.url;
+    if (data.url && data.url !== currentUrl) {
+      currentUrl = data.url;
 
-        video.src = currentUrl;
-        video.load();
+      video.src = currentUrl;
+      video.load();
+
+      // 🔥 auto play only if user already clicked start
+      if (started) {
+        playVideo();
       }
-    } catch (e) {
-      console.log("fetch error");
     }
+  } catch (e) {
+    console.log("fetch error");
   }
+}
 
-  // fetch every 3 sec
-  setInterval(fetchVideo, 3000);
+// every 3 sec
+setInterval(fetchVideo, 3000);
 
-  // 🔥 REQUIRED for mobile audio + playback
-  btn.onclick = () => {
-    video.play()
-      .then(() => {
-        btn.style.display = "none";
-      })
-      .catch(() => {
-        alert("Tap again");
-      });
-  };
+// 🔥 main play function
+function playVideo() {
+  video.muted = false;
 
+  video.play()
+    .then(() => {
+      console.log("playing with audio");
+    })
+    .catch(() => {
+      console.log("play failed");
+    });
+}
+
+// 🔥 user interaction (MOST IMPORTANT)
+btn.onclick = () => {
+  started = true;
+
+  playVideo();
+
+  btn.style.display = "none";
+};
 </script>
 
 </body>

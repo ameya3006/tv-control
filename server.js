@@ -5,25 +5,20 @@ app.use(express.json());
 app.use(express.static("public"));
 
 let currentVideo = "";
-let isPlaying = false; // ✅ ALWAYS FALSE START
+let isPlaying = false;
 
-// 🎬 Play
+// ▶ PLAY
 app.post("/play", (req, res) => {
-  currentVideo = req.body.url || currentVideo;
+  currentVideo = req.body.url;
   isPlaying = true;
+  console.log("PLAY:", currentVideo);
   res.send("Playing");
 });
 
-// ⏸ Pause
+// ⏸ PAUSE
 app.post("/pause", (req, res) => {
   isPlaying = false;
   res.send("Paused");
-});
-
-// ▶ Resume
-app.post("/resume", (req, res) => {
-  isPlaying = true;
-  res.send("Resumed");
 });
 
 // 📡 API
@@ -35,9 +30,5 @@ app.get("/video", (req, res) => {
 });
 
 app.listen(3000, () => {
-  console.log("Server started");
-
-  // 🔥 FORCE RESET EVERY START
-  currentVideo = "";
-  isPlaying = false;
+  console.log("Server running");
 });

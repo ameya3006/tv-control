@@ -47,15 +47,6 @@ function render() {
   playlist.forEach(item => {
     const li = document.createElement("li");
     li.innerText = item;
-
-    li.onclick = () => {
-      fetch(API + "/set", {
-        method: "POST",
-        headers: {"Content-Type":"application/json"},
-        body: JSON.stringify({ url: item })
-      });
-    };
-
     ul.appendChild(li);
   });
 }

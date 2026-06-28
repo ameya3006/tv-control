@@ -21,24 +21,28 @@ const video = document.getElementById("v");
 
 let lastUrl = "";
 
-// 🔁 sync
+// 🔁 sync with server
 setInterval(async () => {
   try {
     const res = await fetch(API + "/video");
     const data = await res.json();
 
-    // load video only when changed
+    // load video
     if (data.url && data.url !== lastUrl) {
       video.src = data.url;
       video.load();
       lastUrl = data.url;
     }
 
-    // ✅ FIXED autoplay logic
+    // ✅ ONLY server controls play/pause
     if (data.playing === true && video.readyState >= 3) {
-      video.play().catch(()=>{});
+      if (video.paused) {
+        video.play().catch(()=>{});
+      }
     } else {
-      video.pause();
+      if (!video.paused) {
+        video.pause();
+      }
     }
 
   } catch (e) {
@@ -51,10 +55,9 @@ video.onended = () => {
   fetch(API + "/next", { method: "POST" });
 };
 
-// 🔊 tap for audio (mobile rule)
+// 🔊 tap ONLY for sound (NO PLAY HERE ❌)
 document.body.addEventListener("click", () => {
   video.muted = false;
-  video.play().catch(()=>{});
 });
 </script>
 

@@ -16,8 +16,18 @@
 <script>
 const API = "https://tv-control.onrender.com";
 
+// 🔥 load existing video on refresh
+window.onload = () => {
+  fetch(API + "/video")
+    .then(res => res.json())
+    .then(data => {
+      if (data.url) addToList(data.url);
+    });
+};
+
 function playVideo() {
-  const url = document.getElementById("url").value;
+  const urlInput = document.getElementById("url");
+  const url = urlInput.value.trim();
 
   if (!url) {
     alert("Enter URL");
@@ -32,19 +42,23 @@ function playVideo() {
     body: JSON.stringify({ url: url })
   })
   .then(() => {
-    addToList(url);
-    document.getElementById("url").value = "";
+    addToList(url);   // 🔥 UI update
+    urlInput.value = "";
   })
   .catch(err => {
-    alert("Error sending request");
     console.log(err);
+    alert("Error");
   });
 }
 
+// 🔥 FIXED FUNCTION
 function addToList(url) {
+  const list = document.getElementById("list");
+
   const li = document.createElement("li");
-  li.textContent = url;
-  document.getElementById("list").appendChild(li);
+  li.innerText = url;
+
+  list.appendChild(li);
 }
 </script>
 

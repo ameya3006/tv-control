@@ -1,9 +1,14 @@
 const express = require("express");
-const app = express();
 const cors = require("cors");
+const path = require("path");
+
+const app = express();
 
 app.use(cors());
 app.use(express.json());
+
+// ✅ STATIC FILES FIX (MOST IMPORTANT)
+app.use(express.static(path.join(__dirname, "public")));
 
 let playlist = [];
 let currentIndex = -1;
@@ -53,7 +58,7 @@ app.post("/next", (req, res) => {
   res.send("ok");
 });
 
-// 👉 VIDEO DATA
+// 👉 VIDEO API
 app.get("/video", (req, res) => {
   res.json({
     url: playlist[currentIndex] || "",
@@ -61,4 +66,10 @@ app.get("/video", (req, res) => {
   });
 });
 
-app.listen(3000, () => console.log("Server running"));
+// ✅ ROOT FIX (optional but helpful)
+app.get("/", (req, res) => {
+  res.send("TV Control Server Running ✅");
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log("Server running on", PORT));

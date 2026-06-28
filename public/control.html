@@ -1,101 +1,102 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Control Panel</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TV Control</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: linear-gradient(135deg, #0f172a, #020617);
-      color: white;
-      text-align: center;
-    }
+<style>
+body {
+  margin: 0;
+  font-family: Arial;
+  background: linear-gradient(135deg, #0f172a, #020617);
+  color: white;
+}
 
-    .container {
-      padding: 20px;
-      max-width: 500px;
-      margin: auto;
-    }
+.container {
+  padding: 20px;
+}
 
-    h2 {
-      margin-bottom: 20px;
-    }
+h1 {
+  font-size: 28px;
+  margin-bottom: 10px;
+}
 
-    input {
-      width: 75%;
-      padding: 10px;
-      border-radius: 10px;
-      border: none;
-      outline: none;
-      margin-bottom: 10px;
-    }
+.card {
+  background: rgba(255,255,255,0.05);
+  padding: 20px;
+  border-radius: 15px;
+  margin-bottom: 20px;
+  backdrop-filter: blur(10px);
+}
 
-    button {
-      padding: 10px 15px;
-      margin: 5px;
-      border: none;
-      border-radius: 10px;
-      background: #2563eb;
-      color: white;
-      font-size: 14px;
-      cursor: pointer;
-      transition: 0.2s;
-    }
+input {
+  width: 70%;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+}
 
-    button:hover {
-      background: #1d4ed8;
-    }
+.add-btn {
+  padding: 12px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(45deg,#9333ea,#ec4899);
+  color: white;
+}
 
-    .controls {
-      margin-top: 15px;
-    }
+.controls {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
 
-    .controls button {
-      width: 80px;
-    }
+.controls button {
+  flex: 1;
+  padding: 15px;
+  border: none;
+  border-radius: 12px;
+  color: white;
+  font-weight: bold;
+}
 
-    h3 {
-      margin-top: 25px;
-    }
+.start { background: #22c55e; }
+.play { background: #3b82f6; }
+.pause { background: #f59e0b; }
+.next { background: #a855f7; }
 
-    ul {
-      list-style: none;
-      padding: 0;
-    }
+ul { list-style: none; padding: 0; }
 
-    li {
-      background: #1e293b;
-      margin: 5px 0;
-      padding: 10px;
-      border-radius: 8px;
-      font-size: 13px;
-      word-break: break-all;
-    }
-
-  </style>
+li {
+  background: rgba(255,255,255,0.05);
+  padding: 10px;
+  border-radius: 10px;
+  margin-bottom: 10px;
+}
+</style>
 </head>
 
 <body>
 
 <div class="container">
 
-  <h2>📱 TV Control Panel</h2>
+<h1>🎬 TV Control Panel</h1>
 
-  <input id="url" placeholder="Enter video URL">
-  <br>
-  <button onclick="add()">➕ Add</button>
+<div class="card">
+  <input id="url" placeholder="Paste video URL here...">
+  <button class="add-btn" onclick="add()">ADD</button>
+</div>
 
-  <div class="controls">
-    <button onclick="start()">▶ Start</button>
-    <button onclick="play()">⏯ Play</button>
-    <button onclick="pause()">⏸ Pause</button>
-    <button onclick="next()">⏭ Next</button>
-  </div>
+<div class="card controls">
+  <button class="start" onclick="start()">START</button>
+  <button class="play" onclick="play()">PLAY</button>
+  <button class="pause" onclick="pause()">PAUSE</button>
+  <button class="next" onclick="next()">NEXT</button>
+</div>
 
-  <h3>🎬 Playlist</h3>
+<div class="card">
+  <h3>📂 Playlist</h3>
   <ul id="list"></ul>
+</div>
 
 </div>
 

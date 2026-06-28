@@ -5,30 +5,28 @@ app.use(express.json());
 app.use(express.static("public"));
 
 let currentVideo = "";
-let isPlaying = false; // ✅ default false ठेव
+let isPlaying = false; // ✅ ALWAYS FALSE START
 
-// 🎬 PLAY (ONLY when button clicked)
+// 🎬 Play
 app.post("/play", (req, res) => {
-  if (req.body.url) {
-    currentVideo = req.body.url;
-  }
-  isPlaying = true; // ✅ इथेच true होईल
+  currentVideo = req.body.url || currentVideo;
+  isPlaying = true;
   res.send("Playing");
 });
 
-// ⏸ PAUSE
+// ⏸ Pause
 app.post("/pause", (req, res) => {
   isPlaying = false;
   res.send("Paused");
 });
 
-// ▶ RESUME
+// ▶ Resume
 app.post("/resume", (req, res) => {
   isPlaying = true;
   res.send("Resumed");
 });
 
-// 📡 TV API
+// 📡 API
 app.get("/video", (req, res) => {
   res.json({
     url: currentVideo,
@@ -36,11 +34,10 @@ app.get("/video", (req, res) => {
   });
 });
 
-// ❗ RESET when server starts (IMPORTANT)
-app.get("/reset", (req, res) => {
-  isPlaying = false;
-  currentVideo = "";
-  res.send("Reset done");
-});
+app.listen(3000, () => {
+  console.log("Server started");
 
-app.listen(3000, () => console.log("Server running"));
+  // 🔥 FORCE RESET EVERY START
+  currentVideo = "";
+  isPlaying = false;
+});

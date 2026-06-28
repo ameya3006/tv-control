@@ -1,140 +1,109 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>TV Control Panel</title>
-  <style>
-    body {
-      background: #0f172a;
-      color: white;
-      font-family: sans-serif;
-      padding: 20px;
-    }
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    h1 {
-      margin-bottom: 20px;
-    }
+<style>
+body {
+  background: #0f172a;
+  color: white;
+  font-family: sans-serif;
+  padding: 20px;
+}
 
-    input {
-      width: 70%;
-      padding: 10px;
-      border-radius: 8px;
-      border: none;
-      margin-right: 10px;
-    }
+h1 {
+  margin-bottom: 20px;
+}
 
-    button {
-      padding: 10px 20px;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      font-weight: bold;
-    }
+input {
+  width: 70%;
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
+}
 
-    .add { background: purple; color: white; }
+button {
+  padding: 12px 20px;
+  margin: 10px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+}
 
-    .controls button {
-      margin: 10px;
-      width: 150px;
-    }
+.add { background: purple; color: white; }
+.start { background: green; }
+.play { background: blue; }
+.pause { background: orange; }
+.next { background: purple; }
 
-    .start { background: green; }
-    .play { background: blue; }
-    .pause { background: orange; }
-    .next { background: purple; }
-
-    ul {
-      margin-top: 20px;
-    }
-  </style>
+ul {
+  margin-top: 20px;
+}
+</style>
 </head>
 
 <body>
 
 <h1>📺 TV Control Panel</h1>
 
-<input id="url" type="text" placeholder="Paste video URL">
+<input id="url" placeholder="Paste video URL">
 <button class="add" onclick="addVideo()">ADD</button>
 
-<div class="controls">
-  <button class="start" onclick="startVideo()">START</button>
-  <button class="play" onclick="playVideo()">PLAY</button>
-  <button class="pause" onclick="pauseVideo()">PAUSE</button>
-  <button class="next" onclick="nextVideo()">NEXT</button>
-</div>
+<br>
+
+<button class="start" onclick="start()">⏮ START</button>
+<button class="play" onclick="resume()">▶ PLAY</button>
+<button class="pause" onclick="pause()">⏸ PAUSE</button>
+<button class="next" onclick="next()">⏭ NEXT</button>
 
 <h3>📁 Playlist</h3>
-<ul id="playlist"></ul>
+<ul id="list"></ul>
 
 <script>
-const API = "https://tv-control.onrender.com";
+const API = "";
 
 let playlist = [];
-let currentIndex = 0;
 
-// 👉 ADD button
 function addVideo() {
-  const input = document.getElementById("url");
-  const url = input.value.trim();
+  const url = document.getElementById("url").value;
 
-  if (!url) return;
-
-  playlist.push(url);
-  renderPlaylist();
-
-  input.value = "";
-}
-
-// 👉 render list
-function renderPlaylist() {
-  const list = document.getElementById("playlist");
-  list.innerHTML = "";
-
-  playlist.forEach((url, i) => {
-    const li = document.createElement("li");
-    li.textContent = (i + 1) + ". " + url;
-    list.appendChild(li);
-  });
-}
-
-// 👉 START
-function startVideo() {
-  if (playlist.length === 0) return;
-
-  currentIndex = 0;
-  sendToTV(playlist[currentIndex]);
-}
-
-// 👉 PLAY
-function playVideo() {
-  if (playlist.length === 0) return;
-
-  sendToTV(playlist[currentIndex]);
-}
-
-// 👉 PAUSE
-function pauseVideo() {
-  fetch(API + "/pause", { method: "POST" });
-}
-
-// 👉 NEXT
-function nextVideo() {
-  if (playlist.length === 0) return;
-
-  currentIndex++;
-  if (currentIndex >= playlist.length) currentIndex = 0;
-
-  sendToTV(playlist[currentIndex]);
-}
-
-// 👉 send video to backend
-function sendToTV(url) {
-  fetch(API + "/play", {
+  fetch(API + "/add", {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
     },
-    body: JSON.stringify({ url: url })
+    body: JSON.stringify({ url })
   });
+
+  playlist.push(url);
+  render();
+}
+
+function render() {
+  const ul = document.getElementById("list");
+  ul.innerHTML = "";
+
+  playlist.forEach((v, i) => {
+    const li = document.createElement("li");
+    li.innerText = (i + 1) + ". " + v;
+    ul.appendChild(li);
+  });
+}
+
+function start() {
+  fetch(API + "/start", { method: "POST" });
+}
+
+function pause() {
+  fetch(API + "/pause", { method: "POST" });
+}
+
+function resume() {
+  fetch(API + "/resume", { method: "POST" });
+}
+
+function next() {
+  fetch(API + "/next", { method: "POST" });
 }
 </script>
 

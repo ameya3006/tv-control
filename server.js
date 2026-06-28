@@ -1,23 +1,36 @@
 const express = require("express");
 const app = express();
 
-// middleware
 app.use(express.json());
-app.use(express.static("public"));
 
-let currentVideo = "";
+let videoUrl = "";
+let isPlaying = false;
 
-// ✅ IMPORTANT ROUTE
+// GET video + state
 app.get("/video", (req, res) => {
-  res.json({ url: currentVideo });
+  res.json({
+    url: videoUrl,
+    playing: isPlaying
+  });
 });
 
-// play route
+// SET video
 app.post("/play", (req, res) => {
-  currentVideo = req.body.url;
-  console.log("Now playing:", currentVideo);
-  res.sendStatus(200);
+  videoUrl = req.body.url;
+  isPlaying = true;
+  res.send("Video set & playing");
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log("Server running on port", PORT));
+// PAUSE
+app.post("/pause", (req, res) => {
+  isPlaying = false;
+  res.send("Paused");
+});
+
+// RESUME
+app.post("/resume", (req, res) => {
+  isPlaying = true;
+  res.send("Resumed");
+});
+
+app.listen(3000, () => console.log("Server running"));

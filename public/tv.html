@@ -14,7 +14,7 @@ html, body {
 video {
   width: 100vw;
   height: 100vh;
-  object-fit: cover;
+  object-fit: contain; /* 🔥 horizontal fix */
 }
 </style>
 </head>
@@ -36,12 +36,12 @@ async function loadState() {
   }
 
   if (data.isPlaying) {
-    video.muted = true; // autoplay hack
+    video.muted = true;
+
     video.play().then(() => {
-      // unmute after play
       setTimeout(() => {
         video.muted = false;
-      }, 1000);
+      }, 500);
     }).catch(() => {
       console.log("Tap needed");
     });
@@ -50,7 +50,6 @@ async function loadState() {
   }
 }
 
-// refresh every 1 sec
 setInterval(loadState, 1000);
 </script>
 

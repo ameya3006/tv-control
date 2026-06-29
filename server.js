@@ -1,32 +1,24 @@
 const express = require("express");
-const cors = require("cors");
-
 const app = express();
-app.use(cors());
+
 app.use(express.json());
 app.use(express.static("public"));
 
+// 🔥 GLOBAL STATE
 let playlist = [];
-let currentIndex = -1;
+let currentIndex = 0;
 let playing = false;
+let devices = {};
 
-let tvs = {};
-
-// 📺 TV API
+// 📺 TV FETCH
 app.get("/video", (req, res) => {
-  const tv = req.query.tv || "unknown";
-  const name = req.query.name || "Unknown Device";
+  const id = req.query.tv || "unknown";
+  const name = req.query.name || "TV";
 
-  tvs[tv] = {
-    lastSeen: Date.now(),
-    name: name
-  };
+  // save device
+  devices[id] = { id, name, lastSeen: Date.now() };
 
-  let url = "";
-
-  if (playlist.length > 0 && currentIndex >= 0) {
-    url = playlist[currentIndex];
-  }
+  const url = playlist[currentIndex] || "";
 
   res.json({
     url,
@@ -34,79 +26,54 @@ app.get("/video", (req, res) => {
   });
 });
 
-// 📊 active count
-app.get("/active-count", (req, res) => {
-  const now = Date.now();
-  let active = 0;
+// 📊 STATUS API
+app.get("/status", (req, res) => {
+  const activeDevices = Object.values(devices).filter(
+    d => Date.now() - d.lastSeen < 5000
+  );
 
-  for (let tv in tvs) {
-    if (now - tvs[tv].lastSeen < 10000) {
-      active++;
-    }
-  }
-
-  res.json({ active });
+  res.json({
+    devices: activeDevices,
+    playlist,
+    currentIndex,
+    playing
+  });
 });
 
-// 📱 tv list
-app.get("/tv-list", (req, res) => {
-  const now = Date.now();
-  let list = [];
-
-  for (let tv in tvs) {
-    if (now - tvs[tv].lastSeen < 10000) {
-      list.push({
-        id: tv,
-        name: tvs[tv].name
-      });
-    }
-  }
-
-  res.json(list);
-});
-
-// ➕ add video
+// ➕ ADD VIDEO
 app.post("/add", (req, res) => {
-  playlist.push(req.body.url);
-
-  // 🔥 AUTO START FIRST VIDEO
-  if (currentIndex === -1) {
-    currentIndex = 0;
-    playing = true;
+  const { url } = req.body;
+  if (url) {
+    playlist.push(url);
   }
-
-  res.sendStatus(200);
+  res.send("ok");
 });
 
-// ▶ start
+// ▶ START
 app.post("/start", (req, res) => {
-  if (playlist.length > 0) {
-    currentIndex = 0;
-    playing = true;
-  }
-  res.sendStatus(200);
+  currentIndex = 0;
+  playing = true;
+  res.send("ok");
 });
 
-// ⏸ pause
-app.post("/pause", (req, res) => {
-  playing = false;
-  res.sendStatus(200);
-});
-
-// ▶ resume
+// ▶ PLAY
 app.post("/resume", (req, res) => {
   playing = true;
-  res.sendStatus(200);
+  res.send("ok");
 });
 
-// ⏭ next
+// ⏸ PAUSE
+app.post("/pause", (req, res) => {
+  playing = false;
+  res.send("ok");
+});
+
+// ⏭ NEXT
 app.post("/next", (req, res) => {
-  if (currentIndex < playlist.length - 1) {
-    currentIndex++;
-    playing = true;
+  if (playlist.length > 0) {
+    currentIndex = (currentIndex + 1) % playlist.length;
   }
-  res.sendStatus(200);
+  res.send("ok");
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log("Server running on " + PORT));
+app.listen(3000, () => console.log("Server running on 3000"));

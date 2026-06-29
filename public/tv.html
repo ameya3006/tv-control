@@ -2,54 +2,72 @@
 <html>
 <body style="margin:0;background:black;overflow:hidden;">
 
-<video id="v" playsinline webkit-playsinline
-style="width:100vw;height:100vh;object-fit:contain;background:black;">
-</video>
+<video id="v"
+style="
+position:fixed;
+top:50%;
+left:50%;
+width:100vh;
+height:100vw;
+transform:translate(-50%, -50%) rotate(90deg);
+object-fit:cover;
+background:black;
+"
+playsinline
+></video>
 
 <script>
+const API = ""; // same domain
 const video = document.getElementById("v");
 
 let lastUrl = "";
-let isPlaying = false;
+let hasStarted = false;
 
+// 🔁 sync with server
 setInterval(async () => {
-  const res = await fetch("/video");
-  const data = await res.json();
+  try {
+    const res = await fetch(API + "/video");
+    const data = await res.json();
 
-  // 🎬 load only if URL exists
-  if (data.url && data.url !== lastUrl) {
-    video.src = data.url;
-    video.load();
-    lastUrl = data.url;
-    isPlaying = false;
+    // ❌ no video → do nothing
+    if (!data.url) return;
+
+    // 🎬 new video load
+    if (data.url !== lastUrl) {
+      video.src = data.url;
+      lastUrl = data.url;
+      hasStarted = false;
+    }
+
+    // ▶️ START / PLAY
+    if (data.playing && !hasStarted) {
+      hasStarted = true;
+
+      // IMPORTANT: force play
+      video.muted = false;
+
+      const playPromise = video.play();
+
+      if (playPromise !== undefined) {
+        playPromise.catch(() => {
+          console.log("Autoplay blocked, waiting for tap");
+        });
+      }
+    }
+
+    // ⏸️ PAUSE
+    if (!data.playing && !video.paused) {
+      video.pause();
+    }
+
+  } catch (e) {
+    console.log("error", e);
   }
-
-  // ❌ if no video → clear screen
-  if (!data.url) {
-    video.removeAttribute("src");
-    video.load();
-    lastUrl = "";
-    return;
-  }
-
-  // ▶️ play नियंत्रण
-  if (data.playing && !isPlaying) {
-    video.play().then(() => {
-      isPlaying = true;
-    }).catch(()=>{});
-  }
-
-  // ⏸ pause
-  if (!data.playing && isPlaying) {
-    video.pause();
-    isPlaying = false;
-  }
-
 }, 1000);
 
-// 🔊 sound enable (no autoplay)
+// 👇 USER TAP REQUIRED (mobile fix)
 document.body.addEventListener("click", () => {
-  video.muted = false;
+  video.play();
 });
 </script>
 

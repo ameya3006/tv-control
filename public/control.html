@@ -25,6 +25,7 @@ style="width:60%;padding:12px;border-radius:10px;border:none;">
 <ul id="list"></ul>
 
 <script>
+
 const API = window.location.origin;
 
 let playlist = [];
@@ -33,15 +34,12 @@ function add() {
   const input = document.getElementById("url");
   const url = input.value;
 
-  if (!url) {
-    alert("Enter URL");
-    return;
-  }
+  if (!url) return alert("Enter URL");
 
   playlist.push(url);
   render();
 
-  fetch(API + "/add", {
+  fetch(`${API}/add`, {
     method: "POST",
     headers: {"Content-Type":"application/json"},
     body: JSON.stringify({ url })
@@ -56,39 +54,31 @@ function render() {
 
   playlist.forEach((item, i) => {
     const li = document.createElement("li");
-    li.innerText = (i+1) + ". " + item;
+    li.innerText = `${i+1}. ${item}`;
     ul.appendChild(li);
   });
 }
 
-function start() {
-  fetch(API + "/start", { method: "POST" });
-}
-
-function play() {
-  fetch(API + "/resume", { method: "POST" });
-}
-
-function pause() {
-  fetch(API + "/pause", { method: "POST" });
-}
+function start() { fetch(`${API}/start`, { method: "POST" }); }
+function play() { fetch(`${API}/resume`, { method: "POST" }); }
+function pause() { fetch(`${API}/pause`, { method: "POST" }); }
 
 function next() {
-  fetch(API + "/next", { method: "POST" });
+  fetch(`${API}/next`, { method: "POST" });
   playlist.shift();
   render();
 }
 
-// 👀 COUNT
+// 📊 ACTIVE COUNT
 async function loadCount() {
-  const res = await fetch(API + "/active-count");
+  const res = await fetch(`${API}/active-count`);
   const data = await res.json();
   document.getElementById("count").innerText = data.active;
 }
 
 // 📱 TV LIST
 async function loadTVs() {
-  const res = await fetch(API + "/tv-list");
+  const res = await fetch(`${API}/tv-list`);
   const data = await res.json();
 
   const ul = document.getElementById("tvList");
@@ -96,13 +86,14 @@ async function loadTVs() {
 
   data.forEach(tv => {
     const li = document.createElement("li");
-    li.innerText = tv.name + " (" + tv.id + ")";
+    li.innerText = `${tv.name} (${tv.id})`;
     ul.appendChild(li);
   });
 }
 
 setInterval(loadCount, 2000);
 setInterval(loadTVs, 2000);
+
 </script>
 
 </body>

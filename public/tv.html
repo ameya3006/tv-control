@@ -7,38 +7,47 @@ style="width:100vw;height:100vh;object-fit:contain;background:black;">
 </video>
 
 <script>
-const API = "";
 const video = document.getElementById("v");
 
 let lastUrl = "";
+let isPlaying = false;
 
-// 🔁 sync
 setInterval(async () => {
-  const res = await fetch(API + "/video");
+  const res = await fetch("/video");
   const data = await res.json();
 
-  // 🎬 load video ONLY (no autoplay)
+  // 🎬 load only if URL exists
   if (data.url && data.url !== lastUrl) {
     video.src = data.url;
     video.load();
     lastUrl = data.url;
+    isPlaying = false;
   }
 
-  // 🎮 control play/pause ONLY from server
-  if (data.playing === true) {
-    video.play().catch(()=>{});
-  } else {
+  // ❌ if no video → clear screen
+  if (!data.url) {
+    video.removeAttribute("src");
+    video.load();
+    lastUrl = "";
+    return;
+  }
+
+  // ▶️ play नियंत्रण
+  if (data.playing && !isPlaying) {
+    video.play().then(() => {
+      isPlaying = true;
+    }).catch(()=>{});
+  }
+
+  // ⏸ pause
+  if (!data.playing && isPlaying) {
     video.pause();
+    isPlaying = false;
   }
 
 }, 1000);
 
-// ⏭ next
-video.onended = () => {
-  fetch(API + "/next", { method: "POST" });
-};
-
-// 🔊 user tap → only enable audio (NOT autoplay)
+// 🔊 sound enable (no autoplay)
 document.body.addEventListener("click", () => {
   video.muted = false;
 });

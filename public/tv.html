@@ -2,72 +2,66 @@
 <html>
 <body style="margin:0;background:black;overflow:hidden;">
 
-<video id="v"
-style="
-position:fixed;
-top:50%;
-left:50%;
-width:100vh;
-height:100vw;
-transform:translate(-50%, -50%) rotate(90deg);
-object-fit:cover;
-background:black;
-"
-playsinline
-></video>
+<video id="v" playsinline muted
+style="width:100vw;height:100vh;object-fit:cover;background:black;">
+</video>
 
 <script>
-const API = ""; // same domain
+const API = "";
 const video = document.getElementById("v");
 
 let lastUrl = "";
 let hasStarted = false;
 
-// 🔁 sync with server
+// 🎬 play only when ready
+function safePlay() {
+  video.play().then(() => {
+    console.log("PLAYED");
+  }).catch(() => {
+    console.log("PLAY BLOCKED");
+  });
+}
+
+// 🎯 IMPORTANT: play when video ready
+video.addEventListener("canplay", () => {
+  if (hasStarted) {
+    safePlay();
+  }
+});
+
+// 🔁 server sync
 setInterval(async () => {
   try {
     const res = await fetch(API + "/video");
     const data = await res.json();
 
-    // ❌ no video → do nothing
+    // ❌ no URL → do nothing
     if (!data.url) return;
 
-    // 🎬 new video load
+    // 🎥 new video load
     if (data.url !== lastUrl) {
       video.src = data.url;
+      video.load();
       lastUrl = data.url;
       hasStarted = false;
     }
 
-    // ▶️ START / PLAY
-    if (data.playing && !hasStarted) {
+    // ▶️ START pressed
+    if (data.playing === true) {
       hasStarted = true;
-
-      // IMPORTANT: force play
-      video.muted = false;
-
-      const playPromise = video.play();
-
-      if (playPromise !== undefined) {
-        playPromise.catch(() => {
-          console.log("Autoplay blocked, waiting for tap");
-        });
-      }
-    }
-
-    // ⏸️ PAUSE
-    if (!data.playing && !video.paused) {
+      safePlay();
+    } else {
       video.pause();
+      hasStarted = false;
     }
 
-  } catch (e) {
-    console.log("error", e);
-  }
+  } catch (e) {}
 }, 1000);
 
-// 👇 USER TAP REQUIRED (mobile fix)
+// 📱 tap for audio (mobile restriction)
 document.body.addEventListener("click", () => {
-  video.play();
+  video.muted = false;
+  safePlay();
 });
 </script>
 

@@ -10,12 +10,37 @@ let playlist = [];
 let currentIndex = -1;
 let playing = false;
 
+// 🔥 TV tracking
+let tvs = {};
+
 // 📺 get current video
 app.get("/video", (req, res) => {
+  const tv = req.query.tv || "unknown";
+
+  // 🔥 update last seen
+  tvs[tv] = {
+    lastSeen: Date.now()
+  };
+
   res.json({
     url: playlist[currentIndex] || "",
     playing: playing
   });
+});
+
+// 👀 ACTIVE COUNT
+app.get("/active-count", (req, res) => {
+  const now = Date.now();
+
+  let active = 0;
+
+  for (let tv in tvs) {
+    if (now - tvs[tv].lastSeen < 10000) {
+      active++;
+    }
+  }
+
+  res.json({ active });
 });
 
 // ➕ add video

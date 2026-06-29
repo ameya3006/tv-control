@@ -4,6 +4,9 @@
 
 <h1>📺 TV Control Panel</h1>
 
+<!-- 🔥 LIVE VIEWER COUNT -->
+<h2>👀 Watching: <span id="count">0</span></h2>
+
 <input id="url" placeholder="Paste video URL"
 style="width:60%;padding:12px;border-radius:10px;border:none;">
 
@@ -33,11 +36,9 @@ function add() {
     return;
   }
 
-  // add locally
   playlist.push(url);
   render();
 
-  // send to server
   fetch(API + "/add", {
     method: "POST",
     headers: {"Content-Type":"application/json"},
@@ -73,9 +74,20 @@ function pause() {
 function next() {
   fetch(API + "/next", { method: "POST" });
 
-  playlist.shift(); // remove first
+  playlist.shift();
   render();
 }
+
+// 🔥 LIVE COUNT FETCH
+async function loadCount() {
+  const res = await fetch(API + "/active-count");
+  const data = await res.json();
+
+  document.getElementById("count").innerText = data.active;
+}
+
+// हर 2 sec update
+setInterval(loadCount, 2000);
 </script>
 
 </body>

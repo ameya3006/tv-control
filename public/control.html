@@ -7,38 +7,56 @@
     body {
       margin: 0;
       font-family: Arial;
-      background: #0b1a2f;
+      background: linear-gradient(to bottom, #0b1a2f, #0a0f1c);
       color: white;
       text-align: center;
     }
 
     h1 {
       margin-top: 20px;
+      font-size: 32px;
+    }
+
+    .subtitle {
+      margin: 10px;
+      font-size: 18px;
     }
 
     input {
-      width: 60%;
-      padding: 10px;
-      border-radius: 8px;
+      width: 65%;
+      padding: 12px;
+      border-radius: 10px;
       border: none;
       outline: none;
+      font-size: 14px;
     }
 
-    button {
-      padding: 8px 14px;
-      margin: 5px;
-      border: none;
+    .add-btn {
+      padding: 10px 15px;
+      margin-left: 5px;
       border-radius: 5px;
+      border: none;
       cursor: pointer;
     }
 
-    .controls {
-      margin-top: 10px;
+    .controls button {
+      padding: 6px 12px;
+      margin: 5px;
+      border-radius: 4px;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
     }
 
     .playlist {
       margin-top: 20px;
     }
+
+    .devices {
+      margin: 10px;
+      font-size: 14px;
+    }
+
   </style>
 </head>
 
@@ -46,15 +64,15 @@
 
 <h1>📺 TV Control Panel</h1>
 
-<h3>👀 Watching: <span id="count">0</span></h3>
+<div class="subtitle">👀 Watching: <span id="count">0</span></div>
 
-<h4>📱 Online Devices</h4>
-<div id="devices"></div>
+<div class="subtitle">📱 Online Devices</div>
+<div id="devices" class="devices"></div>
 
 <br>
 
 <input id="url" placeholder="Paste video URL">
-<button onclick="addVideo()">ADD</button>
+<button class="add-btn" onclick="addVideo()">ADD</button>
 
 <div class="controls">
   <button onclick="startVideo()">START</button>
@@ -72,25 +90,25 @@
 
 const API = window.location.origin;
 
-// 🔁 FETCH STATUS
+// 🔁 LOAD STATUS
 async function load() {
   try {
     const res = await fetch(API + "/status");
     const data = await res.json();
 
-    // 👀 watching count
+    // Watching count
     document.getElementById("count").innerText = data.devices?.length || 0;
 
-    // 📱 devices list
+    // Devices
     const dev = document.getElementById("devices");
     dev.innerHTML = "";
     (data.devices || []).forEach(d => {
       const el = document.createElement("div");
-      el.innerText = d.name + " (" + d.id + ")";
+      el.innerText = "owi device (" + d.id + ")";
       dev.appendChild(el);
     });
 
-    // 🎵 playlist
+    // Playlist
     const list = document.getElementById("list");
     list.innerHTML = "";
     (data.playlist || []).forEach((v, i) => {
@@ -106,16 +124,14 @@ async function load() {
 
 setInterval(load, 2000);
 
-// ➕ ADD VIDEO
+// ➕ ADD
 function addVideo() {
   const url = document.getElementById("url").value;
-  if (!url) return alert("URL टाक 😄");
+  if (!url) return;
 
   fetch(API + "/add", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
+    headers: {"Content-Type": "application/json"},
     body: JSON.stringify({ url })
   });
 }

@@ -2,61 +2,62 @@
 <html>
 <head>
   <title>TV Control</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <style>
     body {
       margin: 0;
       font-family: Arial;
-      background: linear-gradient(to bottom, #0b1a2f, #0a0f1c);
+      background: #0f0f0f;
       color: white;
       text-align: center;
     }
 
     h1 {
-      margin-top: 20px;
-      font-size: 32px;
+      margin-top: 15px;
     }
 
-    .subtitle {
+    .box {
+      background: #1c1c1c;
       margin: 10px;
-      font-size: 18px;
+      padding: 10px;
+      border-radius: 10px;
     }
 
     input {
-      width: 65%;
-      padding: 12px;
-      border-radius: 10px;
+      width: 80%;
+      padding: 10px;
+      border-radius: 6px;
       border: none;
-      outline: none;
-      font-size: 14px;
+      margin-top: 10px;
     }
 
-    .add-btn {
+    button {
       padding: 10px 15px;
-      margin-left: 5px;
-      border-radius: 5px;
-      border: none;
-      cursor: pointer;
-    }
-
-    .controls button {
-      padding: 6px 12px;
       margin: 5px;
-      border-radius: 4px;
       border: none;
+      border-radius: 6px;
       cursor: pointer;
-      font-weight: bold;
     }
 
-    .playlist {
-      margin-top: 20px;
+    .add { background: green; color: white; }
+    .start { background: blue; color: white; }
+    .play { background: orange; color: white; }
+    .pause { background: red; color: white; }
+    .next { background: purple; color: white; }
+
+    ul {
+      list-style: none;
+      padding: 0;
     }
 
-    .devices {
-      margin: 10px;
-      font-size: 14px;
+    li {
+      background: #222;
+      margin: 5px;
+      padding: 8px;
+      border-radius: 5px;
+      word-break: break-all;
     }
-
   </style>
 </head>
 
@@ -64,103 +65,88 @@
 
 <h1>📺 TV Control Panel</h1>
 
-<div class="subtitle">👀 Watching: <span id="count">0</span></div>
-
-<div class="subtitle">📱 Online Devices</div>
-<div id="devices" class="devices"></div>
-
-<br>
-
-<input id="url" placeholder="Paste video URL">
-<button class="add-btn" onclick="addVideo()">ADD</button>
-
-<div class="controls">
-  <button onclick="startVideo()">START</button>
-  <button onclick="playVideo()">PLAY</button>
-  <button onclick="pauseVideo()">PAUSE</button>
-  <button onclick="nextVideo()">NEXT</button>
+<div class="box">
+  👀 Watching: <span id="count">0</span>
 </div>
 
-<div class="playlist">
+<div class="box">
+  📱 Online Devices
+  <ul id="devices"></ul>
+</div>
+
+<div class="box">
+  <input id="urlInput" placeholder="Paste video URL">
+  <br>
+  <button class="add" onclick="addVideo()">ADD</button>
+  <br>
+  <button class="start" onclick="startVideo()">START</button>
+  <button class="play" onclick="playVideo()">PLAY</button>
+  <button class="pause" onclick="pauseVideo()">PAUSE</button>
+  <button class="next" onclick="nextVideo()">NEXT</button>
+</div>
+
+<div class="box">
   <h3>Playlist</h3>
-  <ol id="list"></ol>
+  <ul id="playlist"></ul>
 </div>
 
 <script>
+  // 🔥 MAIN FIX → refresh = clear everything
+  localStorage.removeItem("playlist");
 
-const API = window.location.origin;
+  let playlist = [];
 
-// 🔁 LOAD STATUS (devices + playlist)
-async function load() {
-  try {
-    const res = await fetch(API + "/status");
-    const data = await res.json();
+  function addVideo() {
+    const input = document.getElementById("urlInput");
+    const url = input.value;
 
-    // 👀 watching count
-    document.getElementById("count").innerText = data.devices?.length || 0;
+    if (!url) return;
 
-    // 📱 devices
-    const dev = document.getElementById("devices");
-    dev.innerHTML = "";
-    (data.devices || []).forEach(d => {
-      const el = document.createElement("div");
-      el.innerText = d.name + " (" + d.id + ")";
-      dev.appendChild(el);
-    });
+    playlist.push(url);
+    renderList();
 
-    // 🎵 playlist
-    const list = document.getElementById("list");
-    list.innerHTML = "";
-    (data.playlist || []).forEach((v, i) => {
-      const li = document.createElement("li");
-      li.innerText = v;
-      list.appendChild(li);
-    });
-
-  } catch (e) {
-    console.log("Load error:", e);
+    input.value = "";
   }
-}
 
-setInterval(load, 2000);
+  function renderList() {
+    const ul = document.getElementById("playlist");
+    ul.innerHTML = "";
 
-// ➕ ADD VIDEO
-function addVideo() {
-  const urlInput = document.getElementById("url");
-  const url = urlInput.value;
+    playlist.forEach(v => {
+      const li = document.createElement("li");
+      li.textContent = v;
+      ul.appendChild(li);
+    });
+  }
 
-  if (!url) return alert("URL टाक 😄");
+  function startVideo() {
+    if (playlist.length === 0) return;
 
-  fetch(API + "/add", {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({ url })
-  });
+    fetch("/start", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({ url: playlist[0] })
+    });
+  }
 
-  // 🔥 CLEAR INPUT (FIX)
-  urlInput.value = "";
-}
+  function playVideo() {
+    fetch("/play", { method: "POST" });
+  }
 
-// ▶ START
-function startVideo() {
-  fetch(API + "/start", { method: "POST" });
-}
+  function pauseVideo() {
+    fetch("/pause", { method: "POST" });
+  }
 
-// ▶ PLAY
-function playVideo() {
-  fetch(API + "/resume", { method: "POST" });
-}
+  function nextVideo() {
+    if (playlist.length > 0) {
+      playlist.shift();
+      renderList();
 
-// ⏸ PAUSE
-function pauseVideo() {
-  fetch(API + "/pause", { method: "POST" });
-}
-
-// ⏭ NEXT
-function nextVideo() {
-  fetch(API + "/next", { method: "POST" });
-}
-
+      if (playlist.length > 0) {
+        startVideo();
+      }
+    }
+  }
 </script>
 
 </body>

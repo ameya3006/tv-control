@@ -21,6 +21,13 @@ function l(msg){
 
 let lastUrl = "";
 
+// 🔥 Tap to enable audio
+document.body.addEventListener("click", () => {
+  video.muted = false;
+  video.play();
+  l("Audio Enabled 🔊");
+});
+
 setInterval(async () => {
   try {
     const res = await fetch(API + "/video");
@@ -38,11 +45,10 @@ setInterval(async () => {
     }
 
     if (data.playing) {
-      video.muted = true;
       video.play().then(()=>{
         l("Playing ✅");
       }).catch(()=>{
-        l("Play failed ❌");
+        l("Tap to play ❌");
       });
     } else {
       video.pause();

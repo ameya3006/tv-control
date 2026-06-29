@@ -16,39 +16,22 @@ style="width:60%;padding:12px;border-radius:10px;border:none;">
 <button onclick="pause()">PAUSE</button>
 <button onclick="next()">NEXT</button>
 
-<h3>Playlist</h3>
-<ul id="list"></ul>
-
 <script>
 const API = window.location.origin;
-
-let playlist = [];
 
 function add() {
   const url = document.getElementById("url").value.trim();
   if (!url) return alert("Enter URL");
 
-  playlist.push(url);
-  render();
-
   fetch(API + "/set", {
     method: "POST",
     headers: {"Content-Type":"application/json"},
     body: JSON.stringify({ url })
-  });
+  })
+  .then(() => alert("Video Added ✅"))
+  .catch(() => alert("Error ❌"));
 
   document.getElementById("url").value = "";
-}
-
-function render() {
-  const ul = document.getElementById("list");
-  ul.innerHTML = "";
-
-  playlist.forEach(item => {
-    const li = document.createElement("li");
-    li.innerText = item;
-    ul.appendChild(li);
-  });
 }
 
 function start() {

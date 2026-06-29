@@ -1,80 +1,47 @@
 <!DOCTYPE html>
 <html>
-<body style="margin:0;background:black;overflow:hidden;color:white;">
-
-<div id="log" style="position:fixed;top:10px;left:10px;font-size:14px;z-index:999;"></div>
+<body style="margin:0;background:black;overflow:hidden;">
 
 <video id="v" playsinline muted autoplay
 style="width:100vw;height:100vh;object-fit:cover;">
 </video>
 
 <script>
-const API = "";  // SAME DOMAIN असल्यास blank ठेवा
+const API = "";
 
 const video = document.getElementById("v");
-const log = document.getElementById("log");
-
-function l(msg){
-  log.innerHTML = msg;
-  console.log(msg);
-}
 
 let lastUrl = "";
 
-// 🔥 DEBUG EVENTS
-video.onloadeddata = () => {
-  l("Video Loaded ✅");
-};
-
-video.onplay = () => {
-  l("Playing ▶");
-};
-
-video.onerror = () => {
-  l("Video Error ❌");
-};
-
-// 🔁 SERVER CHECK LOOP
 setInterval(async () => {
   try {
     const res = await fetch(API + "/video");
     const data = await res.json();
 
-    l(JSON.stringify(data));
-
     if (!data.url) return;
 
-    // 🎥 new video load
+    // load new video
     if (data.url !== lastUrl) {
       video.src = data.url;
       video.load();
       lastUrl = data.url;
-      l("Loaded New Video 🎬");
     }
 
-    // ▶ play / pause control
+    // play / pause
     if (data.playing) {
-      video.muted = false;   // 🔊 unmute try
-      video.play().then(()=>{
-        l("Playing ✅");
-      }).catch(()=>{
-        l("Play blocked ❌ (Tap screen)");
-      });
+      video.muted = false;
+      video.play().catch(()=>{});
     } else {
       video.pause();
-      l("Paused ⏸");
     }
 
-  } catch (e) {
-    l("Fetch Error ❌");
-  }
+  } catch (e) {}
 }, 1000);
 
-// 👆 USER TAP = AUDIO ENABLE
+// enable audio on tap
 document.body.addEventListener("click", () => {
   video.muted = false;
   video.play().catch(()=>{});
-  l("User Tap → Audio Enabled 🔊");
 });
 </script>
 

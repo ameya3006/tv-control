@@ -15,7 +15,6 @@ app.get("/video", (req, res) => {
   const id = req.query.tv || "unknown";
   const name = req.query.name || "TV";
 
-  // save device
   devices[id] = { id, name, lastSeen: Date.now() };
 
   const url = playlist[currentIndex] || "";
@@ -43,9 +42,7 @@ app.get("/status", (req, res) => {
 // ➕ ADD VIDEO
 app.post("/add", (req, res) => {
   const { url } = req.body;
-  if (url) {
-    playlist.push(url);
-  }
+  if (url) playlist.push(url);
   res.send("ok");
 });
 
@@ -57,7 +54,7 @@ app.post("/start", (req, res) => {
 });
 
 // ▶ PLAY
-app.post("/resume", (req, res) => {
+app.post("/play", (req, res) => {
   playing = true;
   res.send("ok");
 });
@@ -76,4 +73,4 @@ app.post("/next", (req, res) => {
   res.send("ok");
 });
 
-app.listen(3000, () => console.log("Server running on 3000"));
+app.listen(3000, () => console.log("Server running"));

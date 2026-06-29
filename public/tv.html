@@ -7,24 +7,19 @@
 body {
   margin: 0;
   background: black;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
 }
 
-video {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  background: black;
+iframe {
+  width: 100vw;
+  height: 100vh;
+  border: none;
 }
 </style>
 </head>
 
 <body>
 
-<video id="v" playsinline controls></video>
+<iframe id="frame"></iframe>
 
 <script>
 
@@ -36,11 +31,11 @@ localStorage.setItem("tv_id", TV_ID);
 let TV_NAME = localStorage.getItem("tv_name") || prompt("Enter Device Name");
 localStorage.setItem("tv_name", TV_NAME);
 
-const video = document.getElementById("v");
+const frame = document.getElementById("frame");
 let lastUrl = "";
 
-// 🔥 SIMPLE FETCH LOOP
-async function fetchVideo() {
+// 🔥 SIMPLE LOOP
+setInterval(async () => {
   try {
     const res = await fetch(`${API}/video?tv=${TV_ID}&name=${encodeURIComponent(TV_NAME)}`);
     const data = await res.json();
@@ -49,31 +44,17 @@ async function fetchVideo() {
 
     if (!data.url) return;
 
-    // 🔥 FORCE LOAD ONLY WHEN CHANGED
     if (data.url !== lastUrl) {
       lastUrl = data.url;
 
-      video.src = data.url;
-      video.load();
-
-      // autoplay attempt
-      video.play().catch(err => {
-        console.log("Play blocked:", err);
-      });
+      // 🔥 iframe method (browser-safe)
+      frame.src = data.url;
     }
 
   } catch (e) {
-    console.log("ERROR:", e);
+    console.log(e);
   }
-}
-
-// 🔥 NO INTERVAL SPAM — SAFE LOOP
-setInterval(fetchVideo, 2000);
-
-// 🔊 user interaction unlock
-document.body.addEventListener("click", () => {
-  video.play().catch(()=>{});
-});
+}, 2000);
 
 </script>
 

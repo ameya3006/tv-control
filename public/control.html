@@ -1,18 +1,15 @@
 <!DOCTYPE html>
 <html>
-<body style="background:#0f172a;color:white;font-family:sans-serif;text-align:center">
+<head>
+  <title>Control Panel</title>
+</head>
 
-<h1>📺 TV Control Panel</h1>
+<body>
 
-<h2>👀 Watching: <span id="count">0</span></h2>
+<h2>Control Panel 🎮</h2>
 
-<h3>📱 Online Devices</h3>
-<ul id="tvList"></ul>
-
-<input id="url" placeholder="Paste video URL"
-style="width:60%;padding:12px;border-radius:10px;border:none;">
-
-<button onclick="add()">ADD</button>
+<input id="url" placeholder="Enter MP4 URL" style="width:300px">
+<button onclick="add()">Add</button>
 
 <br><br>
 
@@ -21,78 +18,42 @@ style="width:60%;padding:12px;border-radius:10px;border:none;">
 <button onclick="pause()">PAUSE</button>
 <button onclick="next()">NEXT</button>
 
-<h3>Playlist</h3>
-<ul id="list"></ul>
-
 <script>
 
 const API = window.location.origin;
 
-let playlist = [];
-
+// ➕ ADD VIDEO
 function add() {
-  const input = document.getElementById("url");
-  const url = input.value;
+  const url = document.getElementById("url").value;
 
-  if (!url) return alert("Enter URL");
-
-  playlist.push(url);
-  render();
-
-  fetch(`${API}/add`, {
+  fetch(API + "/add", {
     method: "POST",
-    headers: {"Content-Type":"application/json"},
+    headers: {
+      "Content-Type": "application/json"
+    },
     body: JSON.stringify({ url })
   });
-
-  input.value = "";
 }
 
-function render() {
-  const ul = document.getElementById("list");
-  ul.innerHTML = "";
-
-  playlist.forEach((item, i) => {
-    const li = document.createElement("li");
-    li.innerText = `${i+1}. ${item}`;
-    ul.appendChild(li);
-  });
+// ▶ START
+function start() {
+  fetch(API + "/start", { method: "POST" });
 }
 
-function start() { fetch(`${API}/start`, { method: "POST" }); }
-function play() { fetch(`${API}/resume`, { method: "POST" }); }
-function pause() { fetch(`${API}/pause`, { method: "POST" }); }
+// ▶ PLAY
+function play() {
+  fetch(API + "/resume", { method: "POST" });
+}
 
+// ⏸ PAUSE
+function pause() {
+  fetch(API + "/pause", { method: "POST" });
+}
+
+// ⏭ NEXT
 function next() {
-  fetch(`${API}/next`, { method: "POST" });
-  playlist.shift();
-  render();
+  fetch(API + "/next", { method: "POST" });
 }
-
-// 📊 ACTIVE COUNT
-async function loadCount() {
-  const res = await fetch(`${API}/active-count`);
-  const data = await res.json();
-  document.getElementById("count").innerText = data.active;
-}
-
-// 📱 TV LIST
-async function loadTVs() {
-  const res = await fetch(`${API}/tv-list`);
-  const data = await res.json();
-
-  const ul = document.getElementById("tvList");
-  ul.innerHTML = "";
-
-  data.forEach(tv => {
-    const li = document.createElement("li");
-    li.innerText = `${tv.name} (${tv.id})`;
-    ul.appendChild(li);
-  });
-}
-
-setInterval(loadCount, 2000);
-setInterval(loadTVs, 2000);
 
 </script>
 

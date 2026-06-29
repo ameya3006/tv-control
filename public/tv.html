@@ -16,16 +16,15 @@ const log = document.getElementById("log");
 
 function l(msg){
   log.innerHTML = msg;
-  console.log(msg);
 }
 
 let lastUrl = "";
 
-// 🔥 Tap to enable audio
+// 🔊 tap to enable audio
 document.body.addEventListener("click", () => {
   video.muted = false;
   video.play();
-  l("Audio Enabled 🔊");
+  l("Audio ON 🔊");
 });
 
 setInterval(async () => {
@@ -41,22 +40,16 @@ setInterval(async () => {
       video.src = data.url;
       video.load();
       lastUrl = data.url;
-      l("Loaded video");
     }
 
     if (data.playing) {
-      video.play().then(()=>{
-        l("Playing ✅");
-      }).catch(()=>{
-        l("Tap to play ❌");
-      });
+      video.play().catch(()=>{});
     } else {
       video.pause();
-      l("Paused");
     }
 
   } catch (e) {
-    l("Error fetching");
+    l("Error");
   }
 }, 1000);
 </script>

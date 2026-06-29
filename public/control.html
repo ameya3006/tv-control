@@ -90,25 +90,25 @@
 
 const API = window.location.origin;
 
-// 🔁 LOAD STATUS
+// 🔁 LOAD STATUS (devices + playlist)
 async function load() {
   try {
     const res = await fetch(API + "/status");
     const data = await res.json();
 
-    // Watching count
+    // 👀 watching count
     document.getElementById("count").innerText = data.devices?.length || 0;
 
-    // Devices
+    // 📱 devices
     const dev = document.getElementById("devices");
     dev.innerHTML = "";
     (data.devices || []).forEach(d => {
       const el = document.createElement("div");
-      el.innerText = "owi device (" + d.id + ")";
+      el.innerText = d.name + " (" + d.id + ")";
       dev.appendChild(el);
     });
 
-    // Playlist
+    // 🎵 playlist
     const list = document.getElementById("list");
     list.innerHTML = "";
     (data.playlist || []).forEach((v, i) => {
@@ -118,22 +118,27 @@ async function load() {
     });
 
   } catch (e) {
-    console.log(e);
+    console.log("Load error:", e);
   }
 }
 
 setInterval(load, 2000);
 
-// ➕ ADD
+// ➕ ADD VIDEO
 function addVideo() {
-  const url = document.getElementById("url").value;
-  if (!url) return;
+  const urlInput = document.getElementById("url");
+  const url = urlInput.value;
+
+  if (!url) return alert("URL टाक 😄");
 
   fetch(API + "/add", {
     method: "POST",
     headers: {"Content-Type": "application/json"},
     body: JSON.stringify({ url })
   });
+
+  // 🔥 CLEAR INPUT (FIX)
+  urlInput.value = "";
 }
 
 // ▶ START

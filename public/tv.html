@@ -7,12 +7,21 @@
 body {
   margin: 0;
   background: black;
+  overflow: hidden;
 }
 
+/* 🔥 FORCE LANDSCAPE VIDEO */
 video {
-  width: 100vw;
-  height: 100vh;
-  object-fit: contain;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+
+  width: 100vh;
+  height: 100vw;
+
+  transform: translate(-50%, -50%) rotate(90deg);
+  object-fit: cover;
+
   background: black;
 }
 </style>
@@ -20,7 +29,6 @@ video {
 
 <body>
 
-<!-- ❌ controls काढले -->
 <video id="v" autoplay playsinline></video>
 
 <script>
@@ -28,27 +36,21 @@ video {
 const API = window.location.origin;
 const video = document.getElementById("v");
 
-// ❌ USER INTERACTION BLOCK (SUPER IMPORTANT)
-video.addEventListener("click", e => e.preventDefault());
+// ❌ disable manual control
 video.controls = false;
-
-// 🔒 Disable all manual control
-video.onpause = () => {
-  if (!window.allowPause) {
-    video.play().catch(()=>{});
-  }
-};
+video.addEventListener("click", e => e.preventDefault());
 
 let lastUrl = "";
 
-// 🔁 SERVER CONTROL ONLY
+// 🔁 SERVER CONTROL LOOP
 setInterval(async () => {
   try {
-    const res = await fetch(`${API}/video`);
+    const res = await fetch(API + "/video");
     const data = await res.json();
 
     if (!data.url) return;
 
+    // 🎬 new video load
     if (data.url !== lastUrl) {
       lastUrl = data.url;
 
@@ -57,16 +59,16 @@ setInterval(async () => {
       video.play().catch(()=>{});
     }
 
-    // 🔥 ONLY SERVER CONTROL
+    // ▶ play / pause from server only
     if (data.playing) {
-      window.allowPause = false;
       video.play().catch(()=>{});
     } else {
-      window.allowPause = true;
       video.pause();
     }
 
-  } catch (e) {}
+  } catch (e) {
+    console.log("ERR:", e);
+  }
 }, 1500);
 
 </script>

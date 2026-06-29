@@ -9,35 +9,30 @@ body {
   background: black;
 }
 
-iframe {
+video {
   width: 100vw;
   height: 100vh;
-  border: none;
+  object-fit: contain;
+  background: black;
 }
 </style>
 </head>
 
 <body>
 
-<iframe id="frame"></iframe>
+<video id="v" controls autoplay playsinline></video>
 
 <script>
 
 const API = window.location.origin;
+const video = document.getElementById("v");
 
-let TV_ID = localStorage.getItem("tv_id") || ("TV_" + Math.random().toString(36).substr(2,5));
-localStorage.setItem("tv_id", TV_ID);
-
-let TV_NAME = localStorage.getItem("tv_name") || prompt("Enter Device Name");
-localStorage.setItem("tv_name", TV_NAME);
-
-const frame = document.getElementById("frame");
 let lastUrl = "";
 
-// 🔥 SIMPLE LOOP
+// 🔥 FETCH LOOP
 setInterval(async () => {
   try {
-    const res = await fetch(`${API}/video?tv=${TV_ID}&name=${encodeURIComponent(TV_NAME)}`);
+    const res = await fetch(API + "/video");
     const data = await res.json();
 
     console.log("DATA:", data);
@@ -47,14 +42,29 @@ setInterval(async () => {
     if (data.url !== lastUrl) {
       lastUrl = data.url;
 
-      // 🔥 iframe method (browser-safe)
-      frame.src = data.url;
+      // 🔥 FORCE HARD RESET
+      video.pause();
+      video.removeAttribute("src");
+      video.load();
+
+      setTimeout(() => {
+        video.src = data.url;
+        video.load();
+
+        video.play().catch(e => console.log("play error:", e));
+      }, 200);
+    }
+
+    if (data.playing) {
+      video.play().catch(()=>{});
+    } else {
+      video.pause();
     }
 
   } catch (e) {
     console.log(e);
   }
-}, 2000);
+}, 1500);
 
 </script>
 

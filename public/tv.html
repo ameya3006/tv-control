@@ -2,8 +2,20 @@
 <html>
 <body style="margin:0;background:black;overflow:hidden;">
 
-<video id="v" playsinline muted
-style="width:100vw;height:100vh;object-fit:cover;background:black;">
+<video id="v"
+playsinline
+autoplay
+muted
+style="
+position:fixed;
+top:50%;
+left:50%;
+width:100vh;
+height:100vw;
+transform:translate(-50%, -50%) rotate(90deg);
+object-fit:cover;
+background:black;
+">
 </video>
 
 <script>
@@ -11,45 +23,33 @@ const API = "";
 const video = document.getElementById("v");
 
 let lastUrl = "";
-let userStarted = false;
+let isPlaying = false;
 
-// 👆 USER TAP REQUIRED (mobile unlock)
-document.body.addEventListener("click", () => {
-  userStarted = true;
-
-  video.muted = false;
-
-  video.play().catch(()=>{});
-});
-
-// 🔁 server sync
 setInterval(async () => {
   try {
     const res = await fetch(API + "/video");
     const data = await res.json();
 
-    // ❌ no URL = clear screen
-    if (!data.url) {
-      video.pause();
-      video.removeAttribute("src");
-      lastUrl = "";
-      return;
-    }
+    // 🎬 NEW VIDEO LOAD
+    if (data.url && data.url !== lastUrl) {
+      lastUrl = data.url;
 
-    // 🔄 load new video
-    if (data.url !== lastUrl) {
       video.src = data.url;
       video.load();
-      lastUrl = data.url;
+
+      isPlaying = false;
     }
 
-    // ▶️ ONLY play when BOTH conditions true
-    if (data.playing && userStarted) {
-      if (video.readyState >= 3) {
-        video.play().catch(()=>{});
-      }
-    } else {
+    // ▶️ PLAY ONLY WHEN START PRESSED
+    if (data.playing && !isPlaying && video.src) {
+      await video.play();
+      isPlaying = true;
+    }
+
+    // ⏸️ PAUSE
+    if (!data.playing && isPlaying) {
       video.pause();
+      isPlaying = false;
     }
 
   } catch (e) {}

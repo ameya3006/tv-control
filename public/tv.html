@@ -11,22 +11,15 @@ const API = "";
 const video = document.getElementById("v");
 
 let lastUrl = "";
-let hasStarted = false;
+let userStarted = false;
 
-// 🎬 play only when ready
-function safePlay() {
-  video.play().then(() => {
-    console.log("PLAYED");
-  }).catch(() => {
-    console.log("PLAY BLOCKED");
-  });
-}
+// 👆 USER TAP REQUIRED (mobile unlock)
+document.body.addEventListener("click", () => {
+  userStarted = true;
 
-// 🎯 IMPORTANT: play when video ready
-video.addEventListener("canplay", () => {
-  if (hasStarted) {
-    safePlay();
-  }
+  video.muted = false;
+
+  video.play().catch(()=>{});
 });
 
 // 🔁 server sync
@@ -35,34 +28,32 @@ setInterval(async () => {
     const res = await fetch(API + "/video");
     const data = await res.json();
 
-    // ❌ no URL → do nothing
-    if (!data.url) return;
+    // ❌ no URL = clear screen
+    if (!data.url) {
+      video.pause();
+      video.removeAttribute("src");
+      lastUrl = "";
+      return;
+    }
 
-    // 🎥 new video load
+    // 🔄 load new video
     if (data.url !== lastUrl) {
       video.src = data.url;
       video.load();
       lastUrl = data.url;
-      hasStarted = false;
     }
 
-    // ▶️ START pressed
-    if (data.playing === true) {
-      hasStarted = true;
-      safePlay();
+    // ▶️ ONLY play when BOTH conditions true
+    if (data.playing && userStarted) {
+      if (video.readyState >= 3) {
+        video.play().catch(()=>{});
+      }
     } else {
       video.pause();
-      hasStarted = false;
     }
 
   } catch (e) {}
 }, 1000);
-
-// 📱 tap for audio (mobile restriction)
-document.body.addEventListener("click", () => {
-  video.muted = false;
-  safePlay();
-});
 </script>
 
 </body>

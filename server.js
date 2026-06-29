@@ -12,7 +12,7 @@ let playing = false;
 
 let tvs = {};
 
-// 📺 VIDEO API
+// 📺 TV sync + video
 app.get("/video", (req, res) => {
   const tv = req.query.tv || "unknown";
   const name = req.query.name || "Unknown Device";
@@ -22,13 +22,19 @@ app.get("/video", (req, res) => {
     name: name
   };
 
+  let url = "";
+
+  if (currentIndex >= 0 && playlist[currentIndex]) {
+    url = playlist[currentIndex];
+  }
+
   res.json({
-    url: playlist[currentIndex] || "",
-    playing: playing
+    url,
+    playing
   });
 });
 
-// 👀 ACTIVE COUNT
+// 👀 active count
 app.get("/active-count", (req, res) => {
   const now = Date.now();
   let active = 0;
@@ -42,7 +48,7 @@ app.get("/active-count", (req, res) => {
   res.json({ active });
 });
 
-// 📱 TV LIST
+// 📱 tv list
 app.get("/tv-list", (req, res) => {
   const now = Date.now();
   let list = [];
@@ -59,13 +65,13 @@ app.get("/tv-list", (req, res) => {
   res.json(list);
 });
 
-// ➕ ADD VIDEO
+// ➕ add video
 app.post("/add", (req, res) => {
   playlist.push(req.body.url);
   res.sendStatus(200);
 });
 
-// ▶ START
+// ▶ start
 app.post("/start", (req, res) => {
   if (playlist.length > 0) {
     currentIndex = 0;
@@ -74,19 +80,19 @@ app.post("/start", (req, res) => {
   res.sendStatus(200);
 });
 
-// ⏸ PAUSE
+// ⏸ pause
 app.post("/pause", (req, res) => {
   playing = false;
   res.sendStatus(200);
 });
 
-// ▶ RESUME
+// ▶ resume
 app.post("/resume", (req, res) => {
   playing = true;
   res.sendStatus(200);
 });
 
-// ⏭ NEXT
+// ⏭ next
 app.post("/next", (req, res) => {
   if (currentIndex < playlist.length - 1) {
     currentIndex++;

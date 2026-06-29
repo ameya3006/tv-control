@@ -5,59 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <style>
-    body {
-      margin: 0;
-      font-family: Arial;
-      background: #0f0f0f;
-      color: white;
-      text-align: center;
-    }
-
-    h1 {
-      margin-top: 15px;
-    }
-
-    .box {
-      background: #1c1c1c;
-      margin: 10px;
-      padding: 10px;
-      border-radius: 10px;
-    }
-
-    input {
-      width: 80%;
-      padding: 10px;
-      border-radius: 6px;
-      border: none;
-      margin-top: 10px;
-    }
-
-    button {
-      padding: 10px 15px;
-      margin: 5px;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-
-    .add { background: green; color: white; }
-    .start { background: blue; color: white; }
-    .play { background: orange; color: white; }
-    .pause { background: red; color: white; }
-    .next { background: purple; color: white; }
-
-    ul {
-      list-style: none;
-      padding: 0;
-    }
-
-    li {
-      background: #222;
-      margin: 5px;
-      padding: 8px;
-      border-radius: 5px;
-      word-break: break-all;
-    }
+    body { margin:0; font-family:Arial; background:#0f0f0f; color:white; text-align:center;}
+    .box { background:#1c1c1c; margin:10px; padding:10px; border-radius:10px;}
+    input { width:80%; padding:10px; border-radius:6px; border:none; }
+    button { padding:10px; margin:5px; border:none; border-radius:6px; }
+    .add{background:green} .start{background:blue}
+    .play{background:orange} .pause{background:red} .next{background:purple}
+    li{background:#222;margin:5px;padding:8px;border-radius:5px;}
   </style>
 </head>
 
@@ -77,8 +31,7 @@
 <div class="box">
   <input id="urlInput" placeholder="Paste video URL">
   <br>
-  <button class="add" onclick="addVideo()">ADD</button>
-  <br>
+  <button class="add" onclick="addVideo()">ADD</button><br>
   <button class="start" onclick="startVideo()">START</button>
   <button class="play" onclick="playVideo()">PLAY</button>
   <button class="pause" onclick="pauseVideo()">PAUSE</button>
@@ -91,62 +44,60 @@
 </div>
 
 <script>
-  // 🔥 MAIN FIX → refresh = clear everything
-  localStorage.removeItem("playlist");
+let playlist = [];
 
-  let playlist = [];
+// ➕ ADD
+function addVideo() {
+  const url = document.getElementById("urlInput").value;
+  if (!url) return;
 
-  function addVideo() {
-    const input = document.getElementById("urlInput");
-    const url = input.value;
+  playlist.push(url);
+  renderList();
 
-    if (!url) return;
+  fetch("/add", {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({url})
+  });
+}
 
-    playlist.push(url);
-    renderList();
+// 🎬 LIST
+function renderList() {
+  const ul = document.getElementById("playlist");
+  ul.innerHTML = "";
 
-    input.value = "";
-  }
+  playlist.forEach(v => {
+    const li = document.createElement("li");
+    li.textContent = v;
+    ul.appendChild(li);
+  });
+}
 
-  function renderList() {
-    const ul = document.getElementById("playlist");
-    ul.innerHTML = "";
+// ▶ CONTROL
+function startVideo(){ fetch("/start",{method:"POST"}) }
+function playVideo(){ fetch("/play",{method:"POST"}) }
+function pauseVideo(){ fetch("/pause",{method:"POST"}) }
+function nextVideo(){ fetch("/next",{method:"POST"}) }
 
-    playlist.forEach(v => {
-      const li = document.createElement("li");
-      li.textContent = v;
-      ul.appendChild(li);
-    });
-  }
+// 🔥 LIVE STATUS
+async function loadStatus() {
+  const res = await fetch("/status");
+  const data = await res.json();
 
-  function startVideo() {
-    if (playlist.length === 0) return;
+  document.getElementById("count").textContent = data.devices.length;
 
-    fetch("/start", {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({ url: playlist[0] })
-    });
-  }
+  const ul = document.getElementById("devices");
+  ul.innerHTML = "";
 
-  function playVideo() {
-    fetch("/play", { method: "POST" });
-  }
+  data.devices.forEach(d => {
+    const li = document.createElement("li");
+    li.textContent = d.name + " (" + d.id + ")";
+    ul.appendChild(li);
+  });
+}
 
-  function pauseVideo() {
-    fetch("/pause", { method: "POST" });
-  }
-
-  function nextVideo() {
-    if (playlist.length > 0) {
-      playlist.shift();
-      renderList();
-
-      if (playlist.length > 0) {
-        startVideo();
-      }
-    }
-  }
+setInterval(loadStatus, 2000);
+loadStatus();
 </script>
 
 </body>

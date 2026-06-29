@@ -10,7 +10,7 @@ body {
   overflow: hidden;
 }
 
-/* 🔥 FORCE HORIZONTAL VIDEO */
+/* 🔥 Horizontal Video Force */
 video {
   position: absolute;
   top: 50%;
@@ -25,38 +25,19 @@ video {
 
 <body>
 
-<!-- optional debug -->
-<div id="log" style="position:fixed;top:10px;left:10px;color:white;font-size:12px;z-index:999;"></div>
-
 <video id="v" playsinline muted autoplay></video>
 
 <script>
-const API = ""; // SAME DOMAIN असल्यास blank ठेव
+const API = "";
 
 const video = document.getElementById("v");
-const log = document.getElementById("log");
-
 let lastUrl = "";
 
-// debug log
-function l(msg){
-  log.innerText = msg;
-  console.log(msg);
-}
-
-// video events
-video.onloadeddata = () => l("Loaded ✅");
-video.onplay = () => l("Playing ▶");
-video.onerror = () => l("Error ❌");
-
-// loop server check
+// 🔁 server loop
 setInterval(async () => {
   try {
     const res = await fetch(API + "/video");
     const data = await res.json();
-
-    // show debug (remove if not needed)
-    l(JSON.stringify(data));
 
     if (!data.url) return;
 
@@ -65,29 +46,23 @@ setInterval(async () => {
       video.src = data.url;
       video.load();
       lastUrl = data.url;
-      l("New Video 🎬");
     }
 
     // play / pause
     if (data.playing) {
       video.muted = false;
-      video.play().catch(()=>{
-        l("Tap needed ⚠️");
-      });
+      video.play().catch(()=>{});
     } else {
       video.pause();
     }
 
-  } catch (e) {
-    l("Fetch Error ❌");
-  }
+  } catch (e) {}
 }, 1000);
 
-// user tap = enable audio
+// tap = enable audio
 document.body.addEventListener("click", () => {
   video.muted = false;
   video.play().catch(()=>{});
-  l("Audio Enabled 🔊");
 });
 </script>
 

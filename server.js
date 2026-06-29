@@ -1,56 +1,46 @@
 const express = require("express");
-const app = express();
+const cors = require("cors");
 
+const app = express();
+app.use(cors());
 app.use(express.json());
 app.use(express.static("public"));
 
-let videos = [];
-let currentIndex = -1;
-let playing = false;
+let current = {
+  url: "",
+  playing: false
+};
 
-// 🎥 GET CURRENT VIDEO
 app.get("/video", (req, res) => {
-  res.json({
-    url: currentIndex >= 0 ? videos[currentIndex] : "",
-    playing: playing
-  });
+  res.json(current);
 });
 
-// ➕ ADD VIDEO
-app.post("/add", (req, res) => {
-  const { url } = req.body;
-
-  if (url) {
-    videos.push(url);
-    if (currentIndex === -1) currentIndex = 0;
-  }
-
+app.post("/set", (req, res) => {
+  current.url = req.body.url;
+  current.playing = false;
   res.sendStatus(200);
 });
 
-// ▶️ PLAY
-app.post("/play", (req, res) => {
-  playing = true;
+app.post("/start", (req, res) => {
+  current.playing = true;
   res.sendStatus(200);
 });
 
-// ⏸ PAUSE + RESET
+app.post("/resume", (req, res) => {
+  current.playing = true;
+  res.sendStatus(200);
+});
+
 app.post("/pause", (req, res) => {
-  playing = false;
-  currentIndex = -1;
-  videos = [];
+  current.playing = false;
   res.sendStatus(200);
 });
 
-// ⏭ NEXT
 app.post("/next", (req, res) => {
-  if (videos.length > 0) {
-    currentIndex = (currentIndex + 1) % videos.length;
-    playing = true;
-  }
+  current.url = "";
+  current.playing = false;
   res.sendStatus(200);
 });
 
-// 🔥 IMPORTANT (RENDER FIX)
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log("Server running on " + PORT));

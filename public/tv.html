@@ -14,12 +14,10 @@ width:100vh;
 height:100vw;
 transform:translate(-50%, -50%) rotate(90deg);
 object-fit:cover;
-background:black;
-">
+background:black;">
 </video>
 
 <script>
-const API = "";
 const video = document.getElementById("v");
 
 let lastUrl = "";
@@ -27,32 +25,38 @@ let isPlaying = false;
 
 setInterval(async () => {
   try {
-    const res = await fetch(API + "/video");
+    const res = await fetch("/video");
     const data = await res.json();
 
-    // 🎬 NEW VIDEO LOAD
-    if (data.url && data.url !== lastUrl) {
-      lastUrl = data.url;
+    // ❌ NO URL → CLEAR SCREEN
+    if (!data.url) {
+      video.removeAttribute("src");
+      return;
+    }
 
+    // 🎬 LOAD NEW VIDEO
+    if (data.url !== lastUrl) {
+      lastUrl = data.url;
       video.src = data.url;
       video.load();
-
       isPlaying = false;
     }
 
-    // ▶️ PLAY ONLY WHEN START PRESSED
-    if (data.playing && !isPlaying && video.src) {
+    // ▶️ PLAY ONLY WHEN START
+    if (data.playing && !isPlaying) {
       await video.play();
       isPlaying = true;
     }
 
-    // ⏸️ PAUSE
+    // ⏸ PAUSE
     if (!data.playing && isPlaying) {
       video.pause();
       isPlaying = false;
     }
 
-  } catch (e) {}
+  } catch (e) {
+    console.log("error", e);
+  }
 }, 1000);
 </script>
 

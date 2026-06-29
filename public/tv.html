@@ -11,13 +11,10 @@ body {
 }
 
 video {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 100vh;
-  height: 100vw;
-  transform: translate(-50%, -50%) rotate(90deg);
-  object-fit: cover;
+  width: 100vw;
+  height: 100vh;
+  object-fit: contain;
+  background: black;
 }
 </style>
 </head>
@@ -30,30 +27,30 @@ video {
 
 const API = window.location.origin;
 
-// 🔥 UNIQUE TV ID
+// TV ID
 let TV_ID = localStorage.getItem("tv_id");
 if (!TV_ID) {
   TV_ID = "TV_" + Math.random().toString(36).substr(2,5);
   localStorage.setItem("tv_id", TV_ID);
 }
 
-// 🔥 TV NAME
+// TV NAME
 let TV_NAME = localStorage.getItem("tv_name");
 if (!TV_NAME) {
-  TV_NAME = prompt("Enter Device Name (Phone / Hall / Bedroom)");
+  TV_NAME = prompt("Enter Device Name");
   localStorage.setItem("tv_name", TV_NAME);
 }
 
 const video = document.getElementById("v");
 let lastUrl = "";
 
-// 🔁 MAIN LOOP
+// LOOP
 setInterval(async () => {
   try {
     const res = await fetch(`${API}/video?tv=${TV_ID}&name=${encodeURIComponent(TV_NAME)}`);
     const data = await res.json();
 
-    if (!data || !data.url) return;
+    if (!data.url || data.url === "") return;
 
     if (data.url !== lastUrl) {
       video.pause();
@@ -70,11 +67,11 @@ setInterval(async () => {
     }
 
   } catch (e) {
-    console.log("error:", e);
+    console.log(e);
   }
 }, 1000);
 
-// 🔊 unlock sound
+// unlock audio
 document.body.addEventListener("click", () => {
   video.muted = false;
   video.play().catch(()=>{});

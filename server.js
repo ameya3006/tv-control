@@ -8,7 +8,7 @@ let videos = [];
 let currentIndex = -1;
 let playing = false;
 
-// 🎥 get video
+// 🎥 GET CURRENT VIDEO
 app.get("/video", (req, res) => {
   res.json({
     url: currentIndex >= 0 ? videos[currentIndex] : "",
@@ -16,31 +16,33 @@ app.get("/video", (req, res) => {
   });
 });
 
-// ➕ add video
+// ➕ ADD VIDEO
 app.post("/add", (req, res) => {
   const { url } = req.body;
+
   if (url) {
     videos.push(url);
     if (currentIndex === -1) currentIndex = 0;
   }
+
   res.sendStatus(200);
 });
 
-// ▶️ play
+// ▶️ PLAY
 app.post("/play", (req, res) => {
   playing = true;
   res.sendStatus(200);
 });
 
-// ⏸ pause + reset
+// ⏸ PAUSE + RESET
 app.post("/pause", (req, res) => {
   playing = false;
-  currentIndex = -1; // 🔥 RESET
+  currentIndex = -1;
   videos = [];
   res.sendStatus(200);
 });
 
-// ⏭ next
+// ⏭ NEXT
 app.post("/next", (req, res) => {
   if (videos.length > 0) {
     currentIndex = (currentIndex + 1) % videos.length;
@@ -49,4 +51,6 @@ app.post("/next", (req, res) => {
   res.sendStatus(200);
 });
 
-app.listen(3000, () => console.log("Server running"));
+// 🔥 IMPORTANT (RENDER FIX)
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log("Server running on " + PORT));

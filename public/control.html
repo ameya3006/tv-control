@@ -25,19 +25,26 @@ const API = window.location.origin;
 let playlist = [];
 
 function add() {
-  const url = document.getElementById("url").value.trim();
-  if (!url) return alert("Enter URL");
+  const input = document.getElementById("url");
+  const url = input.value;
 
+  if (!url) {
+    alert("Enter URL");
+    return;
+  }
+
+  // add locally
   playlist.push(url);
-  render(); // 🔥 IMPORTANT
+  render();
 
-  fetch(API + "/set", {
+  // send to server
+  fetch(API + "/add", {
     method: "POST",
     headers: {"Content-Type":"application/json"},
     body: JSON.stringify({ url })
   });
 
-  document.getElementById("url").value = "";
+  input.value = "";
 }
 
 function render() {
@@ -51,7 +58,6 @@ function render() {
   });
 }
 
-// बाकी controls same
 function start() {
   fetch(API + "/start", { method: "POST" });
 }
@@ -65,18 +71,10 @@ function pause() {
 }
 
 function next() {
-  if (playlist.length === 0) return;
+  fetch(API + "/next", { method: "POST" });
 
-  playlist.shift(); // 🔥 remove current
+  playlist.shift(); // remove first
   render();
-
-  if (playlist.length > 0) {
-    fetch(API + "/set", {
-      method: "POST",
-      headers: {"Content-Type":"application/json"},
-      body: JSON.stringify({ url: playlist[0] })
-    });
-  }
 }
 </script>
 

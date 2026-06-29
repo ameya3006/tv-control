@@ -12,7 +12,7 @@ let playing = false;
 
 let tvs = {};
 
-// 📺 TV sync + video
+// 📺 TV API
 app.get("/video", (req, res) => {
   const tv = req.query.tv || "unknown";
   const name = req.query.name || "Unknown Device";
@@ -24,7 +24,7 @@ app.get("/video", (req, res) => {
 
   let url = "";
 
-  if (currentIndex >= 0 && playlist[currentIndex]) {
+  if (playlist.length > 0 && currentIndex >= 0) {
     url = playlist[currentIndex];
   }
 
@@ -34,7 +34,7 @@ app.get("/video", (req, res) => {
   });
 });
 
-// 👀 active count
+// 📊 active count
 app.get("/active-count", (req, res) => {
   const now = Date.now();
   let active = 0;
@@ -68,6 +68,13 @@ app.get("/tv-list", (req, res) => {
 // ➕ add video
 app.post("/add", (req, res) => {
   playlist.push(req.body.url);
+
+  // 🔥 AUTO START FIRST VIDEO
+  if (currentIndex === -1) {
+    currentIndex = 0;
+    playing = true;
+  }
+
   res.sendStatus(200);
 });
 

@@ -10,7 +10,6 @@ let playlist = [];
 let currentIndex = -1;
 let playing = false;
 
-// 🔥 TV tracking
 let tvs = {};
 
 // 📺 VIDEO API
@@ -29,7 +28,7 @@ app.get("/video", (req, res) => {
   });
 });
 
-// 👀 COUNT
+// 👀 ACTIVE COUNT
 app.get("/active-count", (req, res) => {
   const now = Date.now();
   let active = 0;
@@ -43,7 +42,7 @@ app.get("/active-count", (req, res) => {
   res.json({ active });
 });
 
-// 📱 LIST
+// 📱 TV LIST
 app.get("/tv-list", (req, res) => {
   const now = Date.now();
   let list = [];
@@ -60,12 +59,13 @@ app.get("/tv-list", (req, res) => {
   res.json(list);
 });
 
-// बाकी same
+// ➕ ADD VIDEO
 app.post("/add", (req, res) => {
   playlist.push(req.body.url);
   res.sendStatus(200);
 });
 
+// ▶ START
 app.post("/start", (req, res) => {
   if (playlist.length > 0) {
     currentIndex = 0;
@@ -74,16 +74,19 @@ app.post("/start", (req, res) => {
   res.sendStatus(200);
 });
 
+// ⏸ PAUSE
 app.post("/pause", (req, res) => {
   playing = false;
   res.sendStatus(200);
 });
 
+// ▶ RESUME
 app.post("/resume", (req, res) => {
   playing = true;
   res.sendStatus(200);
 });
 
+// ⏭ NEXT
 app.post("/next", (req, res) => {
   if (currentIndex < playlist.length - 1) {
     currentIndex++;
@@ -93,4 +96,4 @@ app.post("/next", (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log("Server running"));
+app.listen(PORT, () => console.log("Server running on " + PORT));

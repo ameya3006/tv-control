@@ -1,61 +1,55 @@
 <!DOCTYPE html>
 <html>
-<body style="margin:0;background:black;overflow:hidden;">
+<body style="margin:0;background:black;overflow:hidden;color:white;">
 
-<video id="v"
-playsinline
-autoplay
-muted
-style="
-position:fixed;
-top:50%;
-left:50%;
-width:100vh;
-height:100vw;
-transform:translate(-50%, -50%) rotate(90deg);
-object-fit:cover;
-background:black;">
+<div id="log" style="position:fixed;top:10px;left:10px;font-size:14px;"></div>
+
+<video id="v" playsinline muted
+style="width:100vw;height:100vh;object-fit:cover;">
 </video>
 
 <script>
+const API = "";
 const video = document.getElementById("v");
+const log = document.getElementById("log");
+
+function l(msg){
+  log.innerHTML = msg;
+  console.log(msg);
+}
 
 let lastUrl = "";
-let isPlaying = false;
 
 setInterval(async () => {
   try {
-    const res = await fetch("/video");
+    const res = await fetch(API + "/video");
     const data = await res.json();
 
-    // ❌ NO URL → CLEAR SCREEN
-    if (!data.url) {
-      video.removeAttribute("src");
-      return;
-    }
+    l(JSON.stringify(data));
 
-    // 🎬 LOAD NEW VIDEO
+    if (!data.url) return;
+
     if (data.url !== lastUrl) {
-      lastUrl = data.url;
       video.src = data.url;
       video.load();
-      isPlaying = false;
+      lastUrl = data.url;
+      l("Loaded video");
     }
 
-    // ▶️ PLAY ONLY WHEN START
-    if (data.playing && !isPlaying) {
-      await video.play();
-      isPlaying = true;
-    }
-
-    // ⏸ PAUSE
-    if (!data.playing && isPlaying) {
+    if (data.playing) {
+      video.muted = true;
+      video.play().then(()=>{
+        l("Playing ✅");
+      }).catch(()=>{
+        l("Play failed ❌");
+      });
+    } else {
       video.pause();
-      isPlaying = false;
+      l("Paused");
     }
 
   } catch (e) {
-    console.log("error", e);
+    l("Error fetching");
   }
 }, 1000);
 </script>

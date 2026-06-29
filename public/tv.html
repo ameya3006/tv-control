@@ -30,13 +30,20 @@ video {
 <script>
 const API = "";
 
+// 🔥 UNIQUE TV ID
+let TV_ID = localStorage.getItem("tv_id");
+if (!TV_ID) {
+  TV_ID = "TV_" + Math.random().toString(36).substr(2,5);
+  localStorage.setItem("tv_id", TV_ID);
+}
+
 const video = document.getElementById("v");
 let lastUrl = "";
 
 // 🔁 server loop
 setInterval(async () => {
   try {
-    const res = await fetch(API + "/video");
+    const res = await fetch(API + "/video?tv=" + TV_ID);
     const data = await res.json();
 
     if (!data.url) return;

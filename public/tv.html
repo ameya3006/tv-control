@@ -1,68 +1,81 @@
 <!DOCTYPE html>
 <html>
-<body style="margin:0;background:black;overflow:hidden;color:white;">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<div id="log" style="position:fixed;top:10px;left:10px;font-size:14px;z-index:999;"></div>
+<style>
+body {
+  margin: 0;
+  background: black;
+  overflow: hidden;
+}
 
-<video id="v" playsinline muted autoplay
-style="width:100vw;height:100vh;object-fit:cover;">
-</video>
+/* 🔥 FORCE HORIZONTAL VIDEO */
+video {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100vh;
+  height: 100vw;
+  transform: translate(-50%, -50%) rotate(90deg);
+  object-fit: cover;
+}
+</style>
+</head>
+
+<body>
+
+<!-- optional debug -->
+<div id="log" style="position:fixed;top:10px;left:10px;color:white;font-size:12px;z-index:999;"></div>
+
+<video id="v" playsinline muted autoplay></video>
 
 <script>
-const API = "";  // SAME DOMAIN असल्यास blank ठेवा
+const API = ""; // SAME DOMAIN असल्यास blank ठेव
 
 const video = document.getElementById("v");
 const log = document.getElementById("log");
 
+let lastUrl = "";
+
+// debug log
 function l(msg){
-  log.innerHTML = msg;
+  log.innerText = msg;
   console.log(msg);
 }
 
-let lastUrl = "";
+// video events
+video.onloadeddata = () => l("Loaded ✅");
+video.onplay = () => l("Playing ▶");
+video.onerror = () => l("Error ❌");
 
-// 🔥 DEBUG EVENTS
-video.onloadeddata = () => {
-  l("Video Loaded ✅");
-};
-
-video.onplay = () => {
-  l("Playing ▶");
-};
-
-video.onerror = () => {
-  l("Video Error ❌");
-};
-
-// 🔁 SERVER CHECK LOOP
+// loop server check
 setInterval(async () => {
   try {
     const res = await fetch(API + "/video");
     const data = await res.json();
 
+    // show debug (remove if not needed)
     l(JSON.stringify(data));
 
     if (!data.url) return;
 
-    // 🎥 new video load
+    // new video load
     if (data.url !== lastUrl) {
       video.src = data.url;
       video.load();
       lastUrl = data.url;
-      l("Loaded New Video 🎬");
+      l("New Video 🎬");
     }
 
-    // ▶ play / pause control
+    // play / pause
     if (data.playing) {
-      video.muted = false;   // 🔊 unmute try
-      video.play().then(()=>{
-        l("Playing ✅");
-      }).catch(()=>{
-        l("Play blocked ❌ (Tap screen)");
+      video.muted = false;
+      video.play().catch(()=>{
+        l("Tap needed ⚠️");
       });
     } else {
       video.pause();
-      l("Paused ⏸");
     }
 
   } catch (e) {
@@ -70,11 +83,11 @@ setInterval(async () => {
   }
 }, 1000);
 
-// 👆 USER TAP = AUDIO ENABLE
+// user tap = enable audio
 document.body.addEventListener("click", () => {
   video.muted = false;
   video.play().catch(()=>{});
-  l("User Tap → Audio Enabled 🔊");
+  l("Audio Enabled 🔊");
 });
 </script>
 

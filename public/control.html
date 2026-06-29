@@ -16,24 +16,42 @@ style="width:60%;padding:12px;border-radius:10px;border:none;">
 <button onclick="pause()">PAUSE</button>
 <button onclick="next()">NEXT</button>
 
+<h3>Playlist</h3>
+<ul id="list"></ul>
+
 <script>
 const API = window.location.origin;
+
+let playlist = [];
 
 function add() {
   const url = document.getElementById("url").value.trim();
   if (!url) return alert("Enter URL");
 
+  playlist.push(url);
+  render(); // 🔥 IMPORTANT
+
   fetch(API + "/set", {
     method: "POST",
     headers: {"Content-Type":"application/json"},
     body: JSON.stringify({ url })
-  })
-  .then(() => alert("Video Added ✅"))
-  .catch(() => alert("Error ❌"));
+  });
 
   document.getElementById("url").value = "";
 }
 
+function render() {
+  const ul = document.getElementById("list");
+  ul.innerHTML = "";
+
+  playlist.forEach((item, i) => {
+    const li = document.createElement("li");
+    li.innerText = (i+1) + ". " + item;
+    ul.appendChild(li);
+  });
+}
+
+// बाकी controls same
 function start() {
   fetch(API + "/start", { method: "POST" });
 }
@@ -47,7 +65,18 @@ function pause() {
 }
 
 function next() {
-  fetch(API + "/next", { method: "POST" });
+  if (playlist.length === 0) return;
+
+  playlist.shift(); // 🔥 remove current
+  render();
+
+  if (playlist.length > 0) {
+    fetch(API + "/set", {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ url: playlist[0] })
+    });
+  }
 }
 </script>
 

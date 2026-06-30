@@ -73,4 +73,12 @@ app.post("/next", (req, res) => {
   res.send("ok");
 });
 
+// 🔥 CLEAR PLAYLIST (NEW)
+app.post("/clear", (req, res) => {
+  playlist = [];
+  currentIndex = 0;
+  playing = false;
+  res.send("ok");
+});
+
 app.listen(3000, () => console.log("Server running"));

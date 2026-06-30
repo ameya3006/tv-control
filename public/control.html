@@ -1,62 +1,178 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TV Control Panel</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: Arial;
+  background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
+  color: white;
+}
+
+.container { padding: 20px; }
+
+.card {
+  background: rgba(255,255,255,0.05);
+  padding: 20px;
+  margin-bottom: 20px;
+  border-radius: 12px;
+}
+
+button {
+  padding: 10px 15px;
+  margin: 5px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.play { background: #28a745; color: white; }
+.pause { background: #dc3545; color: white; }
+.next { background: #007bff; color: white; }
+.restart { background: #fd7e14; color: white; }
+
+input {
+  width: 80%;
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
+}
+
+.addBtn {
+  padding: 10px 15px;
+  background: #28a745;
+  color: white;
+  border-radius: 8px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+td, th {
+  padding: 10px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>📺 TV Control Panel</h2>
+
+<div class="card">
+  <span id="watching">👀 Watching: 0</span>
+  &nbsp;&nbsp;&nbsp;
+  <span id="online">💻 Online Devices: 0</span>
+</div>
+
+<div class="card">
+  <h3>🎮 Controls</h3>
+  <button class="play" onclick="play()">▶ Play</button>
+  <button class="pause" onclick="pause()">⏸ Pause</button>
+  <button class="next" onclick="nextVideo()">⏭ Next</button>
+  <button class="restart" onclick="restart()">🔄 Restart</button>
+</div>
+
+<div class="card">
+  <h3>➕ Add Video URL</h3>
+  <input type="text" id="url" placeholder="Paste video URL">
+  <button class="addBtn" onclick="play()">ADD</button>
+</div>
+
+<div class="card">
+  <h3>📋 Users Analytics</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>User</th>
+        <th>Last Seen</th>
+      </tr>
+    </thead>
+    <tbody id="usersTable"></tbody>
+  </table>
+</div>
+
+</div>
+
 <script>
 
-// 🎮 EXISTING CONTROL FUNCTIONS (as it is ठेव)
+// 🎮 CONTROL API
 async function send(action, url=null) {
   await fetch("/control", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ action, url })
   });
 }
 
-// ==============================
-// 🔥 MAIN DEVICE SYNC (IMPORTANT)
-// ==============================
+// ▶ PLAY
+function play() {
+  const url = document.getElementById("url").value;
+  if (!url) return alert("Enter URL");
+  send("play", url);
+}
+
+// ⏸ PAUSE
+function pause() {
+  send("pause");
+}
+
+// ⏭ NEXT
+function nextVideo() {
+  send("next");
+}
+
+// 🔄 RESTART
+function restart() {
+  send("restart");
+}
+
+// 🔁 RESET COUNTS ON LOAD
+window.addEventListener("load", () => {
+  updateCounts(0);
+  document.getElementById("usersTable").innerHTML = "";
+});
+
+// 🔢 UPDATE COUNTS
+function updateCounts(count) {
+  document.getElementById("watching").innerText = "👀 Watching: " + count;
+  document.getElementById("online").innerText = "💻 Online Devices: " + count;
+}
+
+// 📡 FETCH DEVICES
 async function loadDevices() {
   try {
     const res = await fetch("/devices");
     const data = await res.json();
 
-    // 🔥 1. ONLINE COUNT UPDATE
-    const onlineCount = data.filter(d => d.status === "ONLINE").length;
+    const online = data.filter(d => d.status === "ONLINE");
 
-    // "Online Devices: X"
-    document.querySelectorAll("*").forEach(el => {
-      if (el.innerText.includes("Online Devices")) {
-        el.innerText = "💻 Online Devices: " + onlineCount;
-      }
+    updateCounts(online.length);
+
+    const table = document.getElementById("usersTable");
+    table.innerHTML = "";
+
+    online.forEach((d, i) => {
+      table.innerHTML += `
+        <tr>
+          <td>${i+1}</td>
+          <td>${d.name}</td>
+          <td>${d.lastSeen}</td>
+        </tr>
+      `;
     });
-
-    // 🔥 2. WATCHING COUNT (same as online)
-    document.querySelectorAll("*").forEach(el => {
-      if (el.innerText.includes("Watching")) {
-        el.innerText = "👀 Watching: " + onlineCount;
-      }
-    });
-
-    // 🔥 3. USERS TABLE UPDATE
-    const tbody = document.querySelector("table tbody");
-    if (tbody) {
-      tbody.innerHTML = "";
-
-      data.forEach((d, i) => {
-        const row = `
-          <tr>
-            <td>${i + 1}</td>
-            <td>${d.name}</td>
-            <td>${d.lastSeen}</td>
-          </tr>
-        `;
-        tbody.innerHTML += row;
-      });
-    }
-
-    console.log("Devices:", data);
 
   } catch(e) {
-    console.log("Device error", e);
+    updateCounts(0);
+    document.getElementById("usersTable").innerHTML = "";
   }
 }
 
@@ -64,3 +180,6 @@ async function loadDevices() {
 setInterval(loadDevices, 2000);
 
 </script>
+
+</body>
+</html>

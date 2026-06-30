@@ -25,17 +25,18 @@ video {
 
 <body>
 
-<video id="v" playsinline></video>
+<video id="v" playsinline preload="none"></video>
 
 <script>
 const API = "https://tv-control.onrender.com";
 const video = document.getElementById("v");
 
+let lastUrl = "";
+let hasStarted = false;   // 🔥 IMPORTANT FLAG
+
 // RESET
 const params = new URLSearchParams(window.location.search);
-if (params.get("reset")) {
-  localStorage.clear();
-}
+if (params.get("reset")) localStorage.clear();
 
 // DEVICE NAME
 let TV_NAME = localStorage.getItem("tv_name");
@@ -51,17 +52,17 @@ if (!TV_ID) {
   localStorage.setItem("tv_id", TV_ID);
 }
 
-let lastUrl = "";
-let userInteracted = false;
-
-// 🔥 FIRST TAP REQUIRED (browser policy)
+// 👆 TAP = allow audio + play
 document.body.addEventListener("click", () => {
-  userInteracted = true;
   video.muted = false;
-  video.play().catch(()=>{});
+
+  // only play if already START pressed
+  if (hasStarted) {
+    video.play().catch(()=>{});
+  }
 });
 
-// 🔁 MAIN LOOP
+// 🔁 LOOP
 setInterval(async () => {
   try {
     const res = await fetch(`${API}/video?tv=${TV_ID}&name=${encodeURIComponent(TV_NAME)}`);
@@ -69,19 +70,28 @@ setInterval(async () => {
 
     if (!data.url) return;
 
-    // 🎬 LOAD VIDEO IF CHANGED
+    // load video but DO NOT PLAY
     if (data.url !== lastUrl) {
       lastUrl = data.url;
       video.src = data.url;
       video.load();
+      video.pause();   // 🔥 force stop
     }
 
-    // ▶ PLAY / ⏸ PAUSE SYNC
+    // 🎯 START detection
     if (data.playing) {
-      // play only if user interacted once
-      if (userInteracted) {
-        video.play().catch(()=>{});
-      }
+      hasStarted = true;
+    }
+
+    // ❌ BEFORE START → NEVER PLAY
+    if (!hasStarted) {
+      video.pause();
+      return;
+    }
+
+    // AFTER START → control allowed
+    if (data.playing) {
+      video.play().catch(()=>{});
     } else {
       video.pause();
     }

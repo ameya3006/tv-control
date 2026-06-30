@@ -73,7 +73,6 @@ body {
 .add{background:linear-gradient(45deg,#22c55e,#15803d)}
 .remove{background:linear-gradient(45deg,#ef4444,#991b1b)}
 
-/* INPUT */
 input {
   width:85%;
   padding:12px;
@@ -83,7 +82,6 @@ input {
   color:white;
 }
 
-/* TABLE */
 table {
   width:100%;
   border-collapse:collapse;
@@ -119,13 +117,11 @@ th, td {
 
 <div class="container">
 
-<!-- STATS -->
 <div class="card flex">
   <div class="stat">👀 Watching: <span id="count">0</span></div>
   <div class="stat">💻 Online Devices: <span id="devicesCount">0</span></div>
 </div>
 
-<!-- CONTROLS -->
 <div class="card">
   <b>🎮 CONTROLS</b><br><br>
   <button class="btn play" onclick="playVideo()">▶ PLAY</button>
@@ -135,14 +131,12 @@ th, td {
   <button class="btn start" onclick="startVideo()">⏮ START</button>
 </div>
 
-<!-- ADD -->
 <div class="card">
   <b>➕ ADD VIDEO URL</b><br><br>
   <input id="urlInput" placeholder="Enter MP4 Video URL">
   <button class="btn add" onclick="addVideo()">ADD</button>
 </div>
 
-<!-- PLAYLIST -->
 <div class="card">
   <b>📃 PLAYLIST</b>
   <table>
@@ -153,7 +147,6 @@ th, td {
   </table>
 </div>
 
-<!-- USERS -->
 <div class="card">
   <b>📊 USERS ANALYTICS</b>
   <table>
@@ -168,6 +161,7 @@ th, td {
 
 <script>
 let playlist = [];
+let devicesData = [];
 
 // ADD VIDEO
 function addVideo() {
@@ -184,7 +178,7 @@ function addVideo() {
   render();
 }
 
-// RENDER
+// PLAYLIST RENDER
 function render() {
   const tbody = document.getElementById("playlist");
   tbody.innerHTML = "";
@@ -202,7 +196,7 @@ function render() {
   });
 }
 
-// PLAY SPECIFIC
+// PLAY INDEX
 function playIndex(i){
   fetch("/start",{method:"POST"});
   setTimeout(()=>fetch("/next",{method:"POST"}),200*i);
@@ -220,27 +214,43 @@ function playVideo(){ fetch("/play",{method:"POST"}) }
 function pauseVideo(){ fetch("/pause",{method:"POST"}) }
 function nextVideo(){ fetch("/next",{method:"POST"}) }
 
-// STATUS
+// LOAD STATUS (server call)
 async function loadStatus() {
   const res = await fetch("/status");
   const data = await res.json();
 
+  devicesData = data.devices;
+
   document.getElementById("count").textContent = data.devices.length;
   document.getElementById("devicesCount").textContent = data.devices.length;
+}
 
+// LIVE USERS TIMER (MAIN FIX 🔥)
+function renderUsers() {
   const users = document.getElementById("users");
   users.innerHTML = "";
 
-  data.devices.forEach(d=>{
-    const time = Math.floor((Date.now()-d.lastSeen)/1000);
-    users.innerHTML += `<tr>
-      <td>${d.name}</td>
-      <td class="small">${time}s ago</td>
-    </tr>`;
+  devicesData.forEach(d=>{
+    const seconds = Math.floor((Date.now() - d.lastSeen)/1000);
+
+    let timeText = seconds + "s ago";
+    if(seconds >= 60){
+      timeText = Math.floor(seconds/60) + "m ago";
+    }
+
+    users.innerHTML += `
+      <tr>
+        <td>${d.name}</td>
+        <td class="small">${timeText}</td>
+      </tr>
+    `;
   });
 }
 
-setInterval(loadStatus,2000);
+// INTERVALS
+setInterval(renderUsers, 1000);   // smooth counter
+setInterval(loadStatus, 5000);    // server refresh
+
 loadStatus();
 </script>
 

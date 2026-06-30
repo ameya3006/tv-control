@@ -2,53 +2,112 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body {
+  margin: 0;
+  background: black;
+  overflow: hidden;
+}
+
+video {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 100vh;
+  height: 100vw;
+  transform: translate(-50%, -50%) rotate(90deg);
+  object-fit: cover;
+  background: black;
+}
+</style>
 </head>
 
-<body style="margin:0;background:black;">
+<body>
 
-<video id="v" autoplay muted playsinline
-style="width:100vw;height:100vh;"></video>
+<video id="v" playsinline preload="none"></video>
 
 <script>
+const API = "https://tv-control.onrender.com";
+const video = document.getElementById("v");
 
-const v = document.getElementById("v");
+let lastUrl = "";
+let hasStarted = false;
 
-// ✅ FIXED UNIQUE DEVICE ID
-let deviceId = localStorage.getItem("deviceId");
+// RESET
+const params = new URLSearchParams(window.location.search);
+if (params.get("reset")) localStorage.clear();
 
-if (!deviceId) {
-  deviceId = "TV-" + Math.random().toString(36).substring(2, 10);
-  localStorage.setItem("deviceId", deviceId);
+// DEVICE NAME
+let TV_NAME = localStorage.getItem("tv_name");
+if (!TV_NAME) {
+  TV_NAME = prompt("Enter Device Name") || "My TV";
+  localStorage.setItem("tv_name", TV_NAME);
 }
 
-// 🎬 video sync
-async function loadVideo() {
+// DEVICE ID
+let TV_ID = localStorage.getItem("tv_id");
+if (!TV_ID) {
+  TV_ID = "TV_" + Math.random().toString(36).substr(2,5);
+  localStorage.setItem("tv_id", TV_ID);
+}
+
+// TAP → enable audio
+document.body.addEventListener("click", () => {
+  video.muted = false;
+  if (hasStarted) {
+    video.play().catch(()=>{});
+  }
+});
+
+// LOOP
+setInterval(async () => {
   try {
-    const res = await fetch("/current");
+    const res = await fetch(`${API}/video?tv=${TV_ID}&name=${encodeURIComponent(TV_NAME)}`);
     const data = await res.json();
 
-    if (data.url && v.src !== data.url) {
-      v.src = data.url;
-      v.play().catch(()=>{});
+    if (!data.url) return;
+
+    // 🔥 FORCE NEXT VIDEO LOAD (MAIN FIX)
+    if (data.url !== lastUrl) {
+      lastUrl = data.url;
+
+      video.pause();
+      video.src = "";
+      video.load();
+
+      setTimeout(() => {
+        video.src = data.url;
+        video.load();
+
+        if (data.playing && hasStarted) {
+          video.play().catch(()=>{});
+        }
+      }, 200);
     }
-  } catch {}
-}
 
-setInterval(loadVideo, 2000);
-loadVideo();
+    // START detection
+    if (data.playing) {
+      hasStarted = true;
+    }
 
-// 📡 ping server
-function ping() {
-  fetch("/ping", {
-    method: "POST",
-    headers: {"Content-Type":"application/json"},
-    body: JSON.stringify({ name: deviceId })
-  }).catch(()=>{});
-}
+    // BEFORE START → do nothing
+    if (!hasStarted) {
+      video.pause();
+      return;
+    }
 
-ping();
-setInterval(ping, 3000);
+    // PLAY / PAUSE SYNC
+    if (data.playing) {
+      video.play().catch(()=>{});
+    } else {
+      video.pause();
+    }
 
+  } catch (e) {
+    console.log("ERR:", e);
+  }
+}, 1500);
 </script>
 
 </body>

@@ -7,6 +7,7 @@
 body {
   margin: 0;
   background: black;
+  overflow: hidden;
 }
 
 video {
@@ -28,14 +29,14 @@ const video = document.getElementById("v");
 
 let lastUrl = "";
 
-// device id
+// stable device id
 let TV_ID = localStorage.getItem("tv_id");
 if (!TV_ID) {
-  TV_ID = "TV_" + Math.random().toString(36).substr(2,6);
+  TV_ID = "TV_" + Math.random().toString(36).substring(2, 8);
   localStorage.setItem("tv_id", TV_ID);
 }
 
-// 🔥 LOAD LOOP
+// load video
 async function load() {
   try {
     const res = await fetch(`${API}/video?tv=${TV_ID}`);
@@ -61,9 +62,7 @@ async function load() {
       video.pause();
     }
 
-  } catch (e) {
-    console.log(e);
-  }
+  } catch (e) {}
 }
 
 setInterval(load, 1500);

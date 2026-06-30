@@ -2,45 +2,49 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<style>
-html, body {
-  margin: 0;
-  height: 100%;
-  background: black;
-}
-
-video {
-  width: 100vw;
-  height: 100vh;
-  object-fit: cover;
-}
-</style>
 </head>
 
-<body>
+<body style="margin:0;background:black;">
 
-<video id="v" autoplay muted playsinline></video>
+<video id="v" autoplay muted playsinline
+style="width:100vw;height:100vh;"></video>
 
 <script>
+
 const v = document.getElementById("v");
 
-// 🔥 VERY IMPORTANT
-document.body.addEventListener("click", () => {
-  v.muted = false;
-  v.play();
-});
-
+// video load
 async function load() {
-  let res = await fetch("/current");
-  let data = await res.json();
+  try {
+    let res = await fetch("/current");
+    let data = await res.json();
 
-  if (data.url) {
-    v.src = data.url;
-    v.play().catch(() => {});
-  }
+    if (data.url && v.src !== data.url) {
+      v.src = data.url;
+      v.play().catch(()=>{});
+    }
+  } catch {}
 }
 
 setInterval(load, 2000);
+
+// 🔥🔥🔥 MAIN FIX
+function ping() {
+  fetch("/ping", {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({
+      name: navigator.userAgent   // UNIQUE DEVICE 🔥
+    })
+  }).catch(()=>{});
+}
+
+// 🔥 PAGE LOAD ला लगेच ping
+ping();
+
+// 🔥 repeat ping
+setInterval(ping, 2000);
+
 </script>
 
 </body>

@@ -52,30 +52,16 @@ if (!TV_ID) {
 }
 
 let lastUrl = "";
+let userInteracted = false;
 
-// 🔥 SINGLE TAP = LOAD + PLAY
-document.body.addEventListener("click", async () => {
-  try {
-    const res = await fetch(`${API}/video?tv=${TV_ID}&name=${encodeURIComponent(TV_NAME)}`);
-    const data = await res.json();
-
-    if (!data.url) return;
-
-    if (data.url !== lastUrl) {
-      lastUrl = data.url;
-      video.src = data.url;
-      video.load();
-    }
-
-    video.muted = false;
-    video.play().catch(()=>{});
-
-  } catch (e) {
-    console.log("ERR:", e);
-  }
+// 🔥 FIRST TAP REQUIRED (browser policy)
+document.body.addEventListener("click", () => {
+  userInteracted = true;
+  video.muted = false;
+  video.play().catch(()=>{});
 });
 
-// 🔁 BACKGROUND SYNC (no autoplay)
+// 🔁 MAIN LOOP
 setInterval(async () => {
   try {
     const res = await fetch(`${API}/video?tv=${TV_ID}&name=${encodeURIComponent(TV_NAME)}`);
@@ -83,18 +69,27 @@ setInterval(async () => {
 
     if (!data.url) return;
 
+    // 🎬 LOAD VIDEO IF CHANGED
     if (data.url !== lastUrl) {
       lastUrl = data.url;
       video.src = data.url;
       video.load();
     }
 
-    if (!data.playing) {
+    // ▶ PLAY / ⏸ PAUSE SYNC
+    if (data.playing) {
+      // play only if user interacted once
+      if (userInteracted) {
+        video.play().catch(()=>{});
+      }
+    } else {
       video.pause();
     }
 
-  } catch (e) {}
-}, 2000);
+  } catch (e) {
+    console.log("ERR:", e);
+  }
+}, 1500);
 </script>
 
 </body>

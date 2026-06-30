@@ -1,102 +1,246 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>TV Control</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <style>
-    body { margin:0; font-family:Arial; background:#0f0f0f; color:white; text-align:center;}
-    .box { background:#1c1c1c; margin:10px; padding:10px; border-radius:10px;}
-    input { width:80%; padding:10px; border-radius:6px; border:none; }
-    button { padding:10px; margin:5px; border:none; border-radius:6px; }
-    .add{background:green} .start{background:blue}
-    .play{background:orange} .pause{background:red} .next{background:purple}
-    li{background:#222;margin:5px;padding:8px;border-radius:5px;}
-  </style>
+<style>
+body {
+  margin:0;
+  font-family: 'Segoe UI', sans-serif;
+  background: radial-gradient(circle at top, #0f172a, #020617);
+  color:white;
+}
+
+/* HEADER */
+.header {
+  text-align:center;
+  padding:20px;
+  font-size:28px;
+  font-weight:bold;
+}
+
+/* GRID */
+.container {
+  width:90%;
+  margin:auto;
+}
+
+/* CARD */
+.card {
+  background: rgba(255,255,255,0.05);
+  backdrop-filter: blur(12px);
+  border-radius:14px;
+  padding:18px;
+  margin:15px 0;
+  box-shadow: 0 0 25px rgba(0,0,0,0.6);
+}
+
+/* FLEX */
+.flex {
+  display:flex;
+  gap:15px;
+  flex-wrap:wrap;
+}
+
+.stat {
+  flex:1;
+  padding:15px;
+  border-radius:10px;
+  background:rgba(255,255,255,0.03);
+}
+
+/* BUTTONS */
+.btn {
+  padding:12px 20px;
+  border:none;
+  border-radius:10px;
+  color:white;
+  cursor:pointer;
+  font-weight:bold;
+  transition:0.3s;
+}
+
+.btn:hover {
+  transform:scale(1.05);
+}
+
+/* COLORS */
+.play{background:linear-gradient(45deg,#22c55e,#16a34a)}
+.pause{background:linear-gradient(45deg,#ef4444,#b91c1c)}
+.next{background:linear-gradient(45deg,#3b82f6,#1d4ed8)}
+.restart{background:linear-gradient(45deg,#f97316,#c2410c)}
+.start{background:linear-gradient(45deg,#8b5cf6,#6d28d9)}
+.add{background:linear-gradient(45deg,#22c55e,#15803d)}
+.remove{background:linear-gradient(45deg,#ef4444,#991b1b)}
+
+/* INPUT */
+input {
+  width:85%;
+  padding:12px;
+  border-radius:10px;
+  border:none;
+  background:#020617;
+  color:white;
+}
+
+/* TABLE */
+table {
+  width:100%;
+  border-collapse:collapse;
+}
+
+th, td {
+  padding:12px;
+  border-bottom:1px solid rgba(255,255,255,0.1);
+  text-align:left;
+}
+
+.action-btn {
+  padding:6px 12px;
+  border:none;
+  border-radius:6px;
+  color:white;
+  cursor:pointer;
+  margin-right:5px;
+}
+
+.playbtn{background:#2563eb}
+.removebtn{background:#dc2626}
+
+.small {
+  color:#9ca3af;
+}
+</style>
 </head>
 
 <body>
 
-<h1>📺 TV Control Panel</h1>
+<div class="header">📺 TV Control Panel</div>
 
-<div class="box">
-  👀 Watching: <span id="count">0</span>
+<div class="container">
+
+<!-- STATS -->
+<div class="card flex">
+  <div class="stat">👀 Watching: <span id="count">0</span></div>
+  <div class="stat">💻 Online Devices: <span id="devicesCount">0</span></div>
 </div>
 
-<div class="box">
-  📱 Online Devices
-  <ul id="devices"></ul>
+<!-- CONTROLS -->
+<div class="card">
+  <b>🎮 CONTROLS</b><br><br>
+  <button class="btn play" onclick="playVideo()">▶ PLAY</button>
+  <button class="btn pause" onclick="pauseVideo()">⏸ PAUSE</button>
+  <button class="btn next" onclick="nextVideo()">⏭ NEXT</button>
+  <button class="btn restart" onclick="startVideo()">🔄 RESTART</button>
+  <button class="btn start" onclick="startVideo()">⏮ START</button>
 </div>
 
-<div class="box">
-  <input id="urlInput" placeholder="Paste video URL">
-  <br>
-  <button class="add" onclick="addVideo()">ADD</button><br>
-  <button class="start" onclick="startVideo()">START</button>
-  <button class="play" onclick="playVideo()">PLAY</button>
-  <button class="pause" onclick="pauseVideo()">PAUSE</button>
-  <button class="next" onclick="nextVideo()">NEXT</button>
+<!-- ADD -->
+<div class="card">
+  <b>➕ ADD VIDEO URL</b><br><br>
+  <input id="urlInput" placeholder="Enter MP4 Video URL">
+  <button class="btn add" onclick="addVideo()">ADD</button>
 </div>
 
-<div class="box">
-  <h3>Playlist</h3>
-  <ul id="playlist"></ul>
+<!-- PLAYLIST -->
+<div class="card">
+  <b>📃 PLAYLIST</b>
+  <table>
+    <thead>
+      <tr><th>#</th><th>VIDEO URL</th><th>ACTION</th></tr>
+    </thead>
+    <tbody id="playlist"></tbody>
+  </table>
+</div>
+
+<!-- USERS -->
+<div class="card">
+  <b>📊 USERS ANALYTICS</b>
+  <table>
+    <thead>
+      <tr><th>USER</th><th>LAST SEEN</th></tr>
+    </thead>
+    <tbody id="users"></tbody>
+  </table>
+</div>
+
 </div>
 
 <script>
 let playlist = [];
 
-// ➕ ADD
+// ADD VIDEO
 function addVideo() {
   const url = document.getElementById("urlInput").value;
   if (!url) return;
 
-  playlist.push(url);
-  renderList();
-
   fetch("/add", {
-    method: "POST",
-    headers: {"Content-Type":"application/json"},
-    body: JSON.stringify({url})
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({url})
+  });
+
+  playlist.push(url);
+  render();
+}
+
+// RENDER
+function render() {
+  const tbody = document.getElementById("playlist");
+  tbody.innerHTML = "";
+
+  playlist.forEach((v,i)=>{
+    tbody.innerHTML += `
+    <tr>
+      <td>${i+1}</td>
+      <td>${v}</td>
+      <td>
+        <button class="action-btn playbtn" onclick="playIndex(${i})">▶ PLAY</button>
+        <button class="action-btn removebtn" onclick="removeVideo(${i})">🗑 REMOVE</button>
+      </td>
+    </tr>`;
   });
 }
 
-// 🎬 LIST
-function renderList() {
-  const ul = document.getElementById("playlist");
-  ul.innerHTML = "";
-
-  playlist.forEach(v => {
-    const li = document.createElement("li");
-    li.textContent = v;
-    ul.appendChild(li);
-  });
+// PLAY SPECIFIC
+function playIndex(i){
+  fetch("/start",{method:"POST"});
+  setTimeout(()=>fetch("/next",{method:"POST"}),200*i);
 }
 
-// ▶ CONTROL
+// REMOVE
+function removeVideo(i){
+  playlist.splice(i,1);
+  render();
+}
+
+// CONTROLS
 function startVideo(){ fetch("/start",{method:"POST"}) }
 function playVideo(){ fetch("/play",{method:"POST"}) }
 function pauseVideo(){ fetch("/pause",{method:"POST"}) }
 function nextVideo(){ fetch("/next",{method:"POST"}) }
 
-// 🔥 LIVE STATUS
+// STATUS
 async function loadStatus() {
   const res = await fetch("/status");
   const data = await res.json();
 
   document.getElementById("count").textContent = data.devices.length;
+  document.getElementById("devicesCount").textContent = data.devices.length;
 
-  const ul = document.getElementById("devices");
-  ul.innerHTML = "";
+  const users = document.getElementById("users");
+  users.innerHTML = "";
 
-  data.devices.forEach(d => {
-    const li = document.createElement("li");
-    li.textContent = d.name + " (" + d.id + ")";
-    ul.appendChild(li);
+  data.devices.forEach(d=>{
+    const time = Math.floor((Date.now()-d.lastSeen)/1000);
+    users.innerHTML += `<tr>
+      <td>${d.name}</td>
+      <td class="small">${time}s ago</td>
+    </tr>`;
   });
 }
 
-setInterval(loadStatus, 2000);
+setInterval(loadStatus,2000);
 loadStatus();
 </script>
 

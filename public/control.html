@@ -39,30 +39,6 @@
       font-size: 16px;
     }
 
-    /* 🔥 BUTTON ROW */
-    .controls {
-      display: flex;
-      gap: 10px;
-      flex-wrap: nowrap;
-      overflow-x: auto;
-    }
-
-    .controls button {
-      flex: 0 0 auto;
-      padding: 10px 15px;
-      border-radius: 8px;
-      border: none;
-      color: white;
-      cursor: pointer;
-      font-weight: bold;
-    }
-
-    .play { background: #22c55e; }
-    .pause { background: #ef4444; }
-    .next { background: #3b82f6; }
-    .restart { background: #f97316; }
-    .start { background: #8b5cf6; }
-
     .add-box {
       display: flex;
       gap: 10px;
@@ -86,10 +62,32 @@
       cursor: pointer;
     }
 
+    .controls {
+      display: flex;
+      gap: 10px;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+    }
+
+    .controls button {
+      padding: 10px 15px;
+      border: none;
+      border-radius: 8px;
+      color: white;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .play { background: #22c55e; }
+    .pause { background: #ef4444; }
+    .next { background: #3b82f6; }
+    .restart { background: #f97316; }
+    .start { background: #8b5cf6; }
+
     table {
       width: 100%;
-      margin-top: 10px;
       border-collapse: collapse;
+      margin-top: 10px;
     }
 
     th, td {
@@ -100,10 +98,10 @@
 
     .btn {
       padding: 6px 10px;
-      border-radius: 6px;
       border: none;
-      color: white;
+      border-radius: 6px;
       cursor: pointer;
+      color: white;
     }
 
     .blue { background: #3b82f6; }
@@ -115,7 +113,7 @@
 
 <h1>📺 TV Control Panel</h1>
 
-<!-- TOP -->
+<!-- TOP STATUS -->
 <div class="card top">
   <div class="box">👀 Watching: <span id="watching">0</span></div>
   <div class="box">💻 Online Devices: <span id="devices">0</span></div>
@@ -123,52 +121,35 @@
 
 <!-- CONTROLS -->
 <div class="card">
-  <h3>🎮 CONTROLS</h3>
+  <h3>🎮 Controls</h3>
 
   <div class="controls">
-    <button class="play" onclick="playCurrent()">▶ PLAY</button>
+    <button class="play" onclick="send('play')">▶ PLAY</button>
     <button class="pause" onclick="send('pause')">⏸ PAUSE</button>
-    <button class="next" onclick="nextVideo()">⏭ NEXT</button>
+    <button class="next" onclick="send('next')">⏭ NEXT</button>
     <button class="restart" onclick="send('restart')">🔁 RESTART</button>
-    <button class="start" onclick="send('start')">⏮ START</button>
   </div>
 </div>
 
-<!-- ADD URL -->
+<!-- ADD VIDEO -->
 <div class="card">
-  <h3>➕ ADD VIDEO URL</h3>
+  <h3>➕ Add Video URL</h3>
 
   <div class="add-box">
     <input id="url" placeholder="Paste MP4 URL">
-    <button class="add-btn" onclick="addVideo()">ADD</button>
+    <button class="add-btn" onclick="addVideo()">ADD & PLAY</button>
   </div>
-</div>
-
-<!-- PLAYLIST -->
-<div class="card">
-  <h3>📜 PLAYLIST</h3>
-
-  <table>
-    <thead>
-      <tr>
-        <th>#</th>
-        <th>VIDEO URL</th>
-        <th>ACTION</th>
-      </tr>
-    </thead>
-    <tbody id="playlist"></tbody>
-  </table>
 </div>
 
 <!-- USERS -->
 <div class="card">
-  <h3>📊 USERS ANALYTICS</h3>
+  <h3>📊 Connected Devices</h3>
 
   <table>
     <thead>
       <tr>
-        <th>DEVICE</th>
-        <th>LAST SEEN</th>
+        <th>Device</th>
+        <th>Last Seen</th>
       </tr>
     </thead>
     <tbody id="users"></tbody>
@@ -177,63 +158,28 @@
 
 <script>
 
-let list = [];
-let current = 0;
-
-function send(action, url="") {
+function send(action, url = "") {
   fetch("/control", {
     method: "POST",
     headers: {"Content-Type":"application/json"},
-    body: JSON.stringify({action, url})
-  });
+    body: JSON.stringify({ action, url })
+  }).catch(()=>{});
 }
 
 function addVideo() {
   const url = document.getElementById("url").value.trim();
   if (!url) return;
 
-  list.push(url);
-  render();
+  send("play", url);
+  document.getElementById("url").value = "";
 }
 
-function playCurrent() {
-  if (list.length === 0) return;
-  send("play", list[current]);
+// ⏱ time format
+function timeAgo(t) {
+  return Math.floor((Date.now() - t) / 1000) + " sec ago";
 }
 
-function nextVideo() {
-  if (list.length === 0) return;
-  current = (current + 1) % list.length;
-  send("play", list[current]);
-}
-
-function removeVideo(i) {
-  list.splice(i,1);
-  render();
-}
-
-function render() {
-  const box = document.getElementById("playlist");
-  box.innerHTML = "";
-
-  list.forEach((v,i)=>{
-    box.innerHTML += `
-      <tr>
-        <td>${i+1}</td>
-        <td>${v}</td>
-        <td>
-          <button class="btn blue" onclick="send('play','${v}')">▶ PLAY</button>
-          <button class="btn red" onclick="removeVideo(${i})">🗑 REMOVE</button>
-        </td>
-      </tr>
-    `;
-  });
-}
-
-function timeAgo(t){
-  return Math.floor((Date.now()-t)/1000)+" sec ago";
-}
-
+// 📡 load devices
 async function load() {
   try {
     const res = await fetch("/devices");
@@ -245,7 +191,7 @@ async function load() {
     const box = document.getElementById("users");
     box.innerHTML = "";
 
-    data.forEach(d=>{
+    data.forEach(d => {
       box.innerHTML += `
         <tr>
           <td>${d.name}</td>
@@ -260,7 +206,8 @@ async function load() {
   }
 }
 
-setInterval(load,1000);
+setInterval(load, 1000);
+load();
 
 </script>
 

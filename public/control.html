@@ -57,6 +57,12 @@ td, th {
   padding: 10px;
   border-bottom: 1px solid rgba(255,255,255,0.1);
 }
+
+.playlist-item {
+  padding: 8px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  font-size: 14px;
+}
 </style>
 </head>
 
@@ -83,7 +89,12 @@ td, th {
 <div class="card">
   <h3>➕ Add Video URL</h3>
   <input type="text" id="url" placeholder="Paste video URL">
-  <button class="addBtn" onclick="play()">ADD</button>
+  <button class="addBtn" onclick="addToPlaylist()">ADD</button>
+</div>
+
+<div class="card">
+  <h3>📜 Playlist</h3>
+  <div id="playlist"></div>
 </div>
 
 <div class="card">
@@ -104,20 +115,40 @@ td, th {
 
 <script>
 
-// 🎮 CONTROL API
-async function send(action, url=null) {
-  await fetch("/control", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ action, url })
+// 🎯 PLAYLIST ARRAY
+let playlist = [];
+let currentIndex = 0;
+
+// ➕ ADD TO PLAYLIST
+function addToPlaylist() {
+  const url = document.getElementById("url").value;
+  if (!url) return alert("Enter URL");
+
+  playlist.push(url);
+  renderPlaylist();
+
+  document.getElementById("url").value = "";
+}
+
+// 📜 RENDER PLAYLIST
+function renderPlaylist() {
+  const div = document.getElementById("playlist");
+  div.innerHTML = "";
+
+  playlist.forEach((url, i) => {
+    div.innerHTML += `
+      <div class="playlist-item">
+        ${i+1}. ${url}
+      </div>
+    `;
   });
 }
 
-// ▶ PLAY
+// ▶ PLAY CURRENT
 function play() {
-  const url = document.getElementById("url").value;
-  if (!url) return alert("Enter URL");
-  send("play", url);
+  if (playlist.length === 0) return alert("Add video first");
+
+  send("play", playlist[currentIndex]);
 }
 
 // ⏸ PAUSE
@@ -127,7 +158,12 @@ function pause() {
 
 // ⏭ NEXT
 function nextVideo() {
-  send("next");
+  if (playlist.length === 0) return;
+
+  currentIndex++;
+  if (currentIndex >= playlist.length) currentIndex = 0;
+
+  send("play", playlist[currentIndex]);
 }
 
 // 🔄 RESTART
@@ -135,19 +171,22 @@ function restart() {
   send("restart");
 }
 
-// 🔁 RESET COUNTS ON LOAD
-window.addEventListener("load", () => {
-  updateCounts(0);
-  document.getElementById("usersTable").innerHTML = "";
-});
+// 📡 API
+async function send(action, url=null) {
+  await fetch("/control", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({ action, url })
+  });
+}
 
-// 🔢 UPDATE COUNTS
+// 🔢 COUNTS
 function updateCounts(count) {
   document.getElementById("watching").innerText = "👀 Watching: " + count;
   document.getElementById("online").innerText = "💻 Online Devices: " + count;
 }
 
-// 📡 FETCH DEVICES
+// 📡 DEVICES
 async function loadDevices() {
   try {
     const res = await fetch("/devices");
@@ -172,7 +211,6 @@ async function loadDevices() {
 
   } catch(e) {
     updateCounts(0);
-    document.getElementById("usersTable").innerHTML = "";
   }
 }
 

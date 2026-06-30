@@ -4,48 +4,45 @@ const app = express();
 app.use(express.json());
 app.use(express.static(__dirname));
 
-let current = { url: "", action: "" };
-let devices = [];
+let current = { url: "" };
+let devices = {}; // key = deviceId, value = lastSeen
 
-// control
+// 🎬 set video
 app.post("/control", (req, res) => {
   current = req.body;
   res.sendStatus(200);
 });
 
-// current video
+// 🎬 get video
 app.get("/current", (req, res) => {
   res.json(current);
 });
 
-// 🔥 FIXED DEVICE TRACKING
+// 📡 ping device
 app.post("/ping", (req, res) => {
-  const name = req.body.name || "Unknown";
+  const id = req.body.name;
 
-  let d = devices.find(x => x.name === name);
+  if (!id) return res.sendStatus(400);
 
-  if (d) {
-    d.lastSeen = Date.now();
-  } else {
-    devices.push({
-      name,
-      lastSeen: Date.now()
-    });
-  }
+  devices[id] = Date.now();
 
   res.sendStatus(200);
 });
 
-// 🔥 ONLY ACTIVE DEVICES RETURN
+// 📱 get active devices
 app.get("/devices", (req, res) => {
   const now = Date.now();
 
-  // 🔥 5 sec inactive remove
-  devices = devices.filter(d => now - d.lastSeen < 5000);
+  const active = Object.keys(devices)
+    .filter(id => now - devices[id] < 15000)
+    .map(id => ({
+      name: id,
+      lastSeen: devices[id]
+    }));
 
-  res.json(devices);
+  res.json(active);
 });
 
-// 🔥 RENDER FIX
+// 🔥 Render fix
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log("Running on " + PORT));

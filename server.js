@@ -2,50 +2,50 @@ const express = require("express");
 const app = express();
 
 app.use(express.json());
-app.use(express.static("public"));
+app.use(express.static(__dirname));
 
+let current = { url: "", action: "" };
 let devices = [];
-let state = { action: "pause", url: "" };
 
-// 🎮 CONTROL
+// control
 app.post("/control", (req, res) => {
-  const { action, url } = req.body;
+  current = req.body;
+  res.sendStatus(200);
+});
 
-  if (action === "play" && url) {
-    state = { action: "play", url };
+// current video
+app.get("/current", (req, res) => {
+  res.json(current);
+});
+
+// 🔥 FIXED DEVICE TRACKING
+app.post("/ping", (req, res) => {
+  const name = req.body.name || "Unknown";
+
+  let d = devices.find(x => x.name === name);
+
+  if (d) {
+    d.lastSeen = Date.now();
+  } else {
+    devices.push({
+      name,
+      lastSeen: Date.now()
+    });
   }
 
-  if (action === "pause") state.action = "pause";
-  if (action === "restart") state.action = "restart";
-
   res.sendStatus(200);
 });
 
-// 📡 STATE
-app.get("/state", (req, res) => {
-  res.json(state);
-});
-
-// 🟢 PING (NO ID → refresh = new device)
-app.post("/ping", (req, res) => {
-  devices.push({
-    id: Math.random(),
-    name: "Device",
-    lastSeen: Date.now(),
-    status: "ONLINE"
-  });
-
-  res.sendStatus(200);
-});
-
-// 📊 DEVICES
+// 🔥 ONLY ACTIVE DEVICES RETURN
 app.get("/devices", (req, res) => {
   const now = Date.now();
 
-  // 🔥 remove old devices (3 sec)
-  devices = devices.filter(d => now - d.lastSeen < 3000);
+  // 🔥 5 sec inactive remove
+  devices = devices.filter(d => now - d.lastSeen < 5000);
 
   res.json(devices);
 });
 
-app.listen(3000, () => console.log("Server running"));
+// 🔥 RENDER FIX
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log("Running on " + PORT));

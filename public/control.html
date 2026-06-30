@@ -8,53 +8,53 @@
     body {
       margin: 0;
       font-family: Arial;
-      background: linear-gradient(135deg, #0f172a, #1e293b);
+      background: linear-gradient(135deg, #0b1220, #111827);
       color: white;
       padding: 20px;
     }
 
     h1 {
       text-align: center;
+      margin-bottom: 20px;
     }
 
     .card {
-      background: #111827;
-      padding: 15px;
+      background: #0f172a;
       border-radius: 12px;
-      margin-top: 15px;
+      padding: 15px;
+      margin-bottom: 15px;
     }
 
     .top {
       display: flex;
-      justify-content: space-between;
       gap: 10px;
     }
 
     .box {
       flex: 1;
-      background: #1f2937;
-      padding: 12px;
+      background: #1e293b;
+      padding: 15px;
       border-radius: 10px;
       text-align: center;
+      font-size: 16px;
     }
 
-    /* 🔥 CONTROLS LINE FIX */
+    /* 🔥 BUTTON ROW */
     .controls {
       display: flex;
       gap: 10px;
       flex-wrap: nowrap;
       overflow-x: auto;
-      margin-top: 10px;
     }
 
     .controls button {
-      border: none;
-      padding: 10px 14px;
+      flex: 0 0 auto;
+      padding: 10px 15px;
       border-radius: 8px;
+      border: none;
       color: white;
       cursor: pointer;
-      white-space: nowrap;
-      flex: 0 0 auto;
+      font-weight: bold;
     }
 
     .play { background: #22c55e; }
@@ -63,8 +63,13 @@
     .restart { background: #f97316; }
     .start { background: #8b5cf6; }
 
+    .add-box {
+      display: flex;
+      gap: 10px;
+    }
+
     input {
-      width: 85%;
+      flex: 1;
       padding: 12px;
       border-radius: 8px;
       border: none;
@@ -73,9 +78,9 @@
     }
 
     .add-btn {
-      padding: 12px;
-      border: none;
       background: #22c55e;
+      border: none;
+      padding: 12px 20px;
       border-radius: 8px;
       color: white;
       cursor: pointer;
@@ -84,23 +89,25 @@
     table {
       width: 100%;
       margin-top: 10px;
+      border-collapse: collapse;
     }
 
-    td, th {
+    th, td {
       padding: 10px;
       border-bottom: 1px solid #333;
+      text-align: left;
     }
 
-    .action-btn {
-      border: none;
+    .btn {
       padding: 6px 10px;
       border-radius: 6px;
-      cursor: pointer;
+      border: none;
       color: white;
+      cursor: pointer;
     }
 
-    .play-small { background: #3b82f6; }
-    .remove { background: #ef4444; }
+    .blue { background: #3b82f6; }
+    .red { background: #ef4444; }
   </style>
 </head>
 
@@ -108,16 +115,18 @@
 
 <h1>📺 TV Control Panel</h1>
 
+<!-- TOP -->
 <div class="card top">
   <div class="box">👀 Watching: <span id="watching">0</span></div>
   <div class="box">💻 Online Devices: <span id="devices">0</span></div>
 </div>
 
+<!-- CONTROLS -->
 <div class="card">
   <h3>🎮 CONTROLS</h3>
 
   <div class="controls">
-    <button class="play" onclick="send('playCurrent')">▶ PLAY</button>
+    <button class="play" onclick="playCurrent()">▶ PLAY</button>
     <button class="pause" onclick="send('pause')">⏸ PAUSE</button>
     <button class="next" onclick="nextVideo()">⏭ NEXT</button>
     <button class="restart" onclick="send('restart')">🔁 RESTART</button>
@@ -125,14 +134,20 @@
   </div>
 </div>
 
+<!-- ADD URL -->
 <div class="card">
   <h3>➕ ADD VIDEO URL</h3>
-  <input id="url" placeholder="Enter video URL">
-  <button class="add-btn" onclick="addVideo()">ADD</button>
+
+  <div class="add-box">
+    <input id="url" placeholder="Paste MP4 URL">
+    <button class="add-btn" onclick="addVideo()">ADD</button>
+  </div>
 </div>
 
+<!-- PLAYLIST -->
 <div class="card">
   <h3>📜 PLAYLIST</h3>
+
   <table>
     <thead>
       <tr>
@@ -145,12 +160,14 @@
   </table>
 </div>
 
+<!-- USERS -->
 <div class="card">
   <h3>📊 USERS ANALYTICS</h3>
+
   <table>
     <thead>
       <tr>
-        <th>USER</th>
+        <th>DEVICE</th>
         <th>LAST SEEN</th>
       </tr>
     </thead>
@@ -179,10 +196,20 @@ function addVideo() {
   render();
 }
 
+function playCurrent() {
+  if (list.length === 0) return;
+  send("play", list[current]);
+}
+
 function nextVideo() {
   if (list.length === 0) return;
   current = (current + 1) % list.length;
   send("play", list[current]);
+}
+
+function removeVideo(i) {
+  list.splice(i,1);
+  render();
 }
 
 function render() {
@@ -195,17 +222,12 @@ function render() {
         <td>${i+1}</td>
         <td>${v}</td>
         <td>
-          <button class="action-btn play-small" onclick="send('play','${v}')">▶ PLAY</button>
-          <button class="action-btn remove" onclick="removeVideo(${i})">🗑 REMOVE</button>
+          <button class="btn blue" onclick="send('play','${v}')">▶ PLAY</button>
+          <button class="btn red" onclick="removeVideo(${i})">🗑 REMOVE</button>
         </td>
       </tr>
     `;
   });
-}
-
-function removeVideo(i) {
-  list.splice(i,1);
-  render();
 }
 
 function timeAgo(t){

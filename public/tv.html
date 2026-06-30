@@ -4,110 +4,92 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-body {
+html, body {
   margin: 0;
+  height: 100%;
   background: black;
   overflow: hidden;
 }
 
 video {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  width: 100vh;
-  height: 100vw;
-  transform: translate(-50%, -50%) rotate(90deg);
+  width: 100vw;
+  height: 100vh;
   object-fit: cover;
   background: black;
+}
+
+/* tap overlay for mobile */
+.tap {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 10;
 }
 </style>
 </head>
 
 <body>
 
-<video id="v" playsinline preload="none"></video>
+<video id="video" autoplay muted playsinline></video>
+<div class="tap" onclick="unlockAudio()"></div>
 
 <script>
-const API = "https://tv-control.onrender.com";
-const video = document.getElementById("v");
+const video = document.getElementById("video");
 
-let lastUrl = "";
-let hasStarted = false;
+// 🔥 FORCE PLAY (mobile autoplay fix)
+function forcePlay() {
+  video.muted = true;
 
-// RESET
-const params = new URLSearchParams(window.location.search);
-if (params.get("reset")) localStorage.clear();
+  let p = video.play();
 
-// DEVICE NAME
-let TV_NAME = localStorage.getItem("tv_name");
-if (!TV_NAME) {
-  TV_NAME = prompt("Enter Device Name") || "My TV";
-  localStorage.setItem("tv_name", TV_NAME);
-}
-
-// DEVICE ID
-let TV_ID = localStorage.getItem("tv_id");
-if (!TV_ID) {
-  TV_ID = "TV_" + Math.random().toString(36).substr(2,5);
-  localStorage.setItem("tv_id", TV_ID);
-}
-
-// TAP → enable audio
-document.body.addEventListener("click", () => {
-  video.muted = false;
-  if (hasStarted) {
-    video.play().catch(()=>{});
+  if (p !== undefined) {
+    p.then(() => {
+      // after autoplay, try unmute
+      setTimeout(()=>{
+        video.muted = false;
+      }, 500);
+    }).catch(()=>{
+      console.log("Autoplay blocked");
+    });
   }
-});
+}
 
-// LOOP
-setInterval(async () => {
+// 🔥 USER TAP = ENABLE AUDIO
+function unlockAudio() {
+  video.muted = false;
+  video.play();
+  document.querySelector(".tap").style.display = "none";
+}
+
+// 🔥 LOAD VIDEO
+function loadVideo(url) {
+  if (!url) return;
+  video.src = url;
+  forcePlay();
+}
+
+// 🔥 CONTROL EVENTS FROM SERVER
+async function listen() {
   try {
-    const res = await fetch(`${API}/video?tv=${TV_ID}&name=${encodeURIComponent(TV_NAME)}`);
+    const res = await fetch("/current");
     const data = await res.json();
 
-    if (!data.url) return;
-
-    // 🔥 FORCE NEXT VIDEO LOAD (MAIN FIX)
-    if (data.url !== lastUrl) {
-      lastUrl = data.url;
-
-      video.pause();
-      video.src = "";
-      video.load();
-
-      setTimeout(() => {
-        video.src = data.url;
-        video.load();
-
-        if (data.playing && hasStarted) {
-          video.play().catch(()=>{});
-        }
-      }, 200);
+    if (data.url && video.src !== data.url) {
+      loadVideo(data.url);
     }
 
-    // START detection
-    if (data.playing) {
-      hasStarted = true;
-    }
+    if (data.action === "play") video.play();
+    if (data.action === "pause") video.pause();
 
-    // BEFORE START → do nothing
-    if (!hasStarted) {
-      video.pause();
-      return;
-    }
-
-    // PLAY / PAUSE SYNC
-    if (data.playing) {
-      video.play().catch(()=>{});
-    } else {
-      video.pause();
-    }
-
-  } catch (e) {
-    console.log("ERR:", e);
+  } catch(e) {
+    console.log("Server not responding");
   }
-}, 1500);
+}
+
+// 🔁 LOOP
+setInterval(listen, 2000);
 </script>
 
 </body>

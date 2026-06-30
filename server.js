@@ -2,19 +2,18 @@ const express = require("express");
 const app = express();
 
 app.use(express.json());
-app.use(express.static(__dirname));
+app.use(express.static("public"));
 
 let playlist = [];
 let currentIndex = 0;
 let playing = false;
 let devices = {};
 
-// 📺 TV API
+// 📺 TV sync API
 app.get("/video", (req, res) => {
   const id = req.query.tv || "unknown";
-  const name = req.query.name || "TV";
 
-  devices[id] = { id, name, lastSeen: Date.now() };
+  devices[id] = Date.now();
 
   res.json({
     url: playlist[currentIndex] || "",
@@ -24,9 +23,14 @@ app.get("/video", (req, res) => {
 
 // 📊 status
 app.get("/status", (req, res) => {
-  const activeDevices = Object.values(devices).filter(
-    d => Date.now() - d.lastSeen < 15000
-  );
+  const now = Date.now();
+
+  const activeDevices = Object.keys(devices)
+    .filter(id => now - devices[id] < 15000)
+    .map(id => ({
+      id,
+      lastSeen: devices[id]
+    }));
 
   res.json({
     devices: activeDevices,
@@ -36,7 +40,7 @@ app.get("/status", (req, res) => {
   });
 });
 
-// ➕ add
+// ➕ add video
 app.post("/add", (req, res) => {
   const { url } = req.body;
   if (url) playlist.push(url);
@@ -49,12 +53,12 @@ app.post("/play", (req, res) => { playing = true; res.sendStatus(200); });
 app.post("/pause", (req, res) => { playing = false; res.sendStatus(200); });
 
 app.post("/next", (req, res) => {
-  if (playlist.length) {
+  if (playlist.length > 0) {
     currentIndex = (currentIndex + 1) % playlist.length;
   }
   res.sendStatus(200);
 });
 
-// 🔥 Render FIX
+// 🔥 Render safe port
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log("Running on", PORT));

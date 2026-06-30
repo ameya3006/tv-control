@@ -7,20 +7,15 @@
   <style>
     body {
       font-family: Arial;
-      background: #0f0f0f;
+      background: #111;
       color: white;
       padding: 15px;
     }
 
-    h1 {
-      text-align: center;
-    }
-
-    .controls {
+    .top {
       display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-top: 10px;
+      justify-content: space-between;
+      margin-bottom: 10px;
     }
 
     input {
@@ -29,74 +24,62 @@
       border-radius: 6px;
       border: none;
       margin-top: 10px;
-      font-size: 14px;
     }
 
-    button {
+    /* 🔥 ALL BUTTONS IN ONE LINE */
+    .controls {
+      display: flex;
+      gap: 6px;
+      margin-top: 10px;
+    }
+
+    .controls button {
       flex: 1;
-      padding: 12px;
+      padding: 10px;
       border: none;
       border-radius: 6px;
-      font-size: 14px;
+      font-size: 13px;
       cursor: pointer;
+      color: white;
     }
 
     .play { background: #00c853; }
+    .next { background: #2962ff; }
     .pause { background: #d50000; }
     .restart { background: #ff6d00; }
-    .next { background: #2962ff; }
 
-    .playlist {
-      margin-top: 20px;
-    }
-
-    .item {
-      background: #1e1e1e;
-      padding: 10px;
-      margin-top: 6px;
+    .playlist .item {
+      background: #222;
+      padding: 8px;
+      margin-top: 5px;
       border-radius: 5px;
       cursor: pointer;
-      font-size: 13px;
-    }
-
-    .item:hover {
-      background: #333;
+      font-size: 12px;
     }
 
     table {
       width: 100%;
       margin-top: 20px;
-      border-collapse: collapse;
-      font-size: 13px;
+      font-size: 12px;
     }
 
-    th, td {
-      padding: 10px;
+    td, th {
+      padding: 8px;
       border-bottom: 1px solid #333;
-    }
-
-    .topbar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .count {
-      font-size: 16px;
-      color: #00e676;
     }
   </style>
 </head>
 
 <body>
 
-<div class="topbar">
-  <h2>🎬 Control</h2>
-  <div class="count">Watching: <span id="watchingCount">0</span></div>
+<div class="top">
+  <h3>🎬 Control</h3>
+  <div>Watching: <span id="watchingCount">0</span></div>
 </div>
 
 <input id="videoUrl" placeholder="Paste MP4 URL here">
 
+<!-- 🔥 SINGLE LINE BUTTONS -->
 <div class="controls">
   <button class="play" onclick="playVideo()">▶ Play</button>
   <button class="next" onclick="nextVideo()">⏭ Next</button>
@@ -119,16 +102,14 @@
 
 <script>
 
-// 🎮 CONTROL API
 async function send(action, url="") {
   await fetch("/control", {
     method: "POST",
-    headers: {"Content-Type": "application/json"},
+    headers: {"Content-Type":"application/json"},
     body: JSON.stringify({action, url})
   });
 }
 
-// 🎬 PLAYLIST
 let list = [];
 let currentIndex = 0;
 
@@ -173,12 +154,10 @@ function renderPlaylist() {
   });
 }
 
-// ⏱ TIME AGO
 function timeAgo(ts) {
   return Math.floor((Date.now() - ts)/1000) + " sec ago";
 }
 
-// 📊 DEVICES
 async function loadDevices() {
   try {
     const res = await fetch("/devices");

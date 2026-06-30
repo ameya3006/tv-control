@@ -7,6 +7,7 @@
 body {
   margin: 0;
   background: black;
+  overflow: hidden;
 }
 
 video {
@@ -31,12 +32,13 @@ let lastUrl = "";
 // device id
 let TV_ID = localStorage.getItem("tv_id");
 if (!TV_ID) {
-  TV_ID = "TV_" + Math.random().toString(36).substring(2, 8);
+  TV_ID = "TV_" + Math.random().toString(36).substring(2,8);
   localStorage.setItem("tv_id", TV_ID);
 }
 
-// 🔥 FORCE FIRST USER TOUCH (IMPORTANT FIX)
+// 🔥 FORCE UNLOCK AUDIO/PLAY (IMPORTANT FIX)
 document.body.addEventListener("click", () => {
+  video.muted = false;
   video.play().catch(()=>{});
 });
 
@@ -46,17 +48,9 @@ async function load() {
     const res = await fetch(`${API}/video?tv=${TV_ID}`);
     const data = await res.json();
 
-    console.log("VIDEO DATA:", data);
+    if (!data.url) return;
 
-    // ❌ if no video → show black (but avoid freeze)
-    if (!data.url) {
-      video.pause();
-      video.removeAttribute("src");
-      video.load();
-      return;
-    }
-
-    // 🔥 new video
+    // 🔥 ONLY WHEN URL CHANGES
     if (data.url !== lastUrl) {
       lastUrl = data.url;
 
@@ -64,6 +58,7 @@ async function load() {
       video.src = data.url;
       video.load();
 
+      // IMPORTANT DELAY FIX
       setTimeout(() => {
         video.play().catch(err => {
           console.log("PLAY ERROR:", err);
@@ -71,7 +66,6 @@ async function load() {
       }, 500);
     }
 
-    // play/pause sync
     if (data.playing) {
       video.play().catch(()=>{});
     } else {
@@ -79,7 +73,7 @@ async function load() {
     }
 
   } catch (e) {
-    console.log("ERR:", e);
+    console.log(e);
   }
 }
 

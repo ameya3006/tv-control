@@ -2,47 +2,83 @@ const express = require("express");
 const app = express();
 
 app.use(express.json());
-app.use(express.static(__dirname));
+app.use(express.static("public"));
 
-let current = { url: "" };
-let devices = {}; // key = deviceId, value = lastSeen
+// 🔥 GLOBAL STATE
+let playlist = [];
+let currentIndex = 0;
+let playing = false;
+let devices = {};
 
-// 🎬 set video
-app.post("/control", (req, res) => {
-  current = req.body;
-  res.sendStatus(200);
+// 📺 TV FETCH
+app.get("/video", (req, res) => {
+  const id = req.query.tv || "unknown";
+  const name = req.query.name || "TV";
+
+  devices[id] = { id, name, lastSeen: Date.now() };
+
+  const url = playlist[currentIndex] || "";
+
+  res.json({
+    url,
+    playing
+  });
 });
 
-// 🎬 get video
-app.get("/current", (req, res) => {
-  res.json(current);
+// 📊 STATUS API
+app.get("/status", (req, res) => {
+  const activeDevices = Object.values(devices).filter(
+    d => Date.now() - d.lastSeen < 5000
+  );
+
+  res.json({
+    devices: activeDevices,
+    playlist,
+    currentIndex,
+    playing
+  });
 });
 
-// 📡 ping device
-app.post("/ping", (req, res) => {
-  const id = req.body.name;
-
-  if (!id) return res.sendStatus(400);
-
-  devices[id] = Date.now();
-
-  res.sendStatus(200);
+// ➕ ADD VIDEO
+app.post("/add", (req, res) => {
+  const { url } = req.body;
+  if (url) playlist.push(url);
+  res.send("ok");
 });
 
-// 📱 get active devices
-app.get("/devices", (req, res) => {
-  const now = Date.now();
-
-  const active = Object.keys(devices)
-    .filter(id => now - devices[id] < 15000)
-    .map(id => ({
-      name: id,
-      lastSeen: devices[id]
-    }));
-
-  res.json(active);
+// ▶ START
+app.post("/start", (req, res) => {
+  currentIndex = 0;
+  playing = true;
+  res.send("ok");
 });
 
-// 🔥 Render fix
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log("Running on " + PORT));
+// ▶ PLAY
+app.post("/play", (req, res) => {
+  playing = true;
+  res.send("ok");
+});
+
+// ⏸ PAUSE
+app.post("/pause", (req, res) => {
+  playing = false;
+  res.send("ok");
+});
+
+// ⏭ NEXT
+app.post("/next", (req, res) => {
+  if (playlist.length > 0) {
+    currentIndex = (currentIndex + 1) % playlist.length;
+  }
+  res.send("ok");
+});
+
+// 🔥 CLEAR PLAYLIST (NEW)
+app.post("/clear", (req, res) => {
+  playlist = [];
+  currentIndex = 0;
+  playing = false;
+  res.send("ok");
+});
+
+app.listen(3000, () => console.log("Server running"));

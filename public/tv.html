@@ -13,11 +13,19 @@ style="width:100vw;height:100vh;"></video>
 
 const v = document.getElementById("v");
 
-// video load
-async function load() {
+// ✅ FIXED UNIQUE DEVICE ID
+let deviceId = localStorage.getItem("deviceId");
+
+if (!deviceId) {
+  deviceId = "TV-" + Math.random().toString(36).substring(2, 10);
+  localStorage.setItem("deviceId", deviceId);
+}
+
+// 🎬 video sync
+async function loadVideo() {
   try {
-    let res = await fetch("/current");
-    let data = await res.json();
+    const res = await fetch("/current");
+    const data = await res.json();
 
     if (data.url && v.src !== data.url) {
       v.src = data.url;
@@ -26,24 +34,20 @@ async function load() {
   } catch {}
 }
 
-setInterval(load, 2000);
+setInterval(loadVideo, 2000);
+loadVideo();
 
-// 🔥🔥🔥 MAIN FIX
+// 📡 ping server
 function ping() {
   fetch("/ping", {
     method: "POST",
     headers: {"Content-Type":"application/json"},
-    body: JSON.stringify({
-      name: navigator.userAgent   // UNIQUE DEVICE 🔥
-    })
+    body: JSON.stringify({ name: deviceId })
   }).catch(()=>{});
 }
 
-// 🔥 PAGE LOAD ला लगेच ping
 ping();
-
-// 🔥 repeat ping
-setInterval(ping, 2000);
+setInterval(ping, 3000);
 
 </script>
 

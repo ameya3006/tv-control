@@ -5,264 +5,89 @@
 
 <style>
 body {
-  margin:0;
-  font-family: 'Segoe UI', sans-serif;
-  background: radial-gradient(circle at top, #0f172a, #020617);
-  color:white;
+  margin: 0;
+  font-family: Arial;
+  background: #111;
+  color: white;
+  text-align: center;
 }
-
-.header {
-  text-align:center;
-  padding:20px;
-  font-size:28px;
-  font-weight:bold;
-}
-
-.container {
-  width:90%;
-  margin:auto;
-}
-
-.card {
-  background: rgba(255,255,255,0.05);
-  backdrop-filter: blur(12px);
-  border-radius:14px;
-  padding:18px;
-  margin:15px 0;
-  box-shadow: 0 0 25px rgba(0,0,0,0.6);
-}
-
-.flex {
-  display:flex;
-  gap:15px;
-  flex-wrap:wrap;
-}
-
-.stat {
-  flex:1;
-  padding:15px;
-  border-radius:10px;
-  background:rgba(255,255,255,0.03);
-}
-
-.btn {
-  padding:12px 20px;
-  border:none;
-  border-radius:10px;
-  color:white;
-  cursor:pointer;
-  font-weight:bold;
-  transition:0.3s;
-}
-
-.btn:hover {
-  transform:scale(1.05);
-}
-
-.play{background:linear-gradient(45deg,#22c55e,#16a34a)}
-.pause{background:linear-gradient(45deg,#ef4444,#b91c1c)}
-.next{background:linear-gradient(45deg,#3b82f6,#1d4ed8)}
-.restart{background:linear-gradient(45deg,#f97316,#c2410c)}
-.start{background:linear-gradient(45deg,#8b5cf6,#6d28d9)}
-.add{background:linear-gradient(45deg,#22c55e,#15803d)}
 
 input {
-  width:85%;
-  padding:12px;
-  border-radius:10px;
-  border:none;
-  background:#020617;
-  color:white;
+  width: 80%;
+  padding: 10px;
+  margin: 10px;
 }
 
-table {
-  width:100%;
-  border-collapse:collapse;
-}
-
-th, td {
-  padding:12px;
-  border-bottom:1px solid rgba(255,255,255,0.1);
-  text-align:left;
-}
-
-.action-btn {
-  padding:6px 12px;
-  border:none;
-  border-radius:6px;
-  color:white;
-  cursor:pointer;
-  margin-right:5px;
-}
-
-.playbtn{background:#2563eb}
-.removebtn{background:#dc2626}
-
-.small {
-  color:#9ca3af;
+button {
+  padding: 10px 20px;
+  margin: 5px;
+  font-size: 16px;
 }
 </style>
 </head>
 
 <body>
 
-<div class="header">📺 TV Control Panel</div>
+<h2>Control Panel</h2>
 
-<div class="container">
+<input type="text" id="url" placeholder="Paste MP4 URL here">
 
-<div class="card flex">
-  <div class="stat">👀 Watching: <span id="count">0</span></div>
-  <div class="stat">💻 Online Devices: <span id="devicesCount">0</span></div>
-</div>
+<br>
 
-<div class="card">
-  <b>🎮 CONTROLS</b><br><br>
-  <button class="btn play" onclick="playVideo()">▶ PLAY</button>
-  <button class="btn pause" onclick="pauseVideo()">⏸ PAUSE</button>
-  <button class="btn next" onclick="nextVideo()">⏭ NEXT</button>
-  <button class="btn restart" onclick="startVideo()">🔄 RESTART</button>
-  <button class="btn start" onclick="startVideo()">⏮ START</button>
-</div>
+<button onclick="play()">▶ Play</button>
+<button onclick="pause()">⏸ Pause</button>
 
-<div class="card">
-  <b>➕ ADD VIDEO URL</b><br><br>
-  <input id="urlInput" placeholder="Enter MP4 Video URL">
-  <button class="btn add" onclick="addVideo()">ADD</button>
-</div>
-
-<div class="card">
-  <b>📃 PLAYLIST</b>
-  <table>
-    <thead>
-      <tr><th>#</th><th>VIDEO URL</th><th>ACTION</th></tr>
-    </thead>
-    <tbody id="playlist"></tbody>
-  </table>
-</div>
-
-<div class="card">
-  <b>📊 USERS ANALYTICS</b>
-  <table>
-    <thead>
-      <tr><th>USER</th><th>LAST SEEN</th></tr>
-    </thead>
-    <tbody id="users"></tbody>
-  </table>
-</div>
-
-</div>
+<!-- 🔥 hidden device container (UI disturb nahi honar) -->
+<div id="devices" style="display:none;"></div>
 
 <script>
-let playlist = [];
-let devicesData = [];
 
-// ✅ SAFE LOAD STATUS (MAIN FIX)
-async function loadStatus() {
+// 🎮 SEND CONTROL
+async function send(action, url=null) {
+  await fetch("/control", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ action, url })
+  });
+}
+
+// ▶ PLAY
+function play() {
+  const url = document.getElementById("url").value;
+  if (!url) {
+    alert("Enter video URL");
+    return;
+  }
+  send("play", url);
+}
+
+// ⏸ PAUSE
+function pause() {
+  send("pause");
+}
+
+// 📡 DEVICE TRACK (NO UI CHANGE)
+async function loadDevices() {
   try {
-    const res = await fetch("/status");
-
-    if (!res.ok) throw new Error("Server error");
-
+    const res = await fetch("/devices");
     const data = await res.json();
 
-    devicesData = Array.isArray(data.devices) ? data.devices : [];
+    console.log("Devices:", data);
 
-  } catch (e) {
-    // ✅ fallback so UI NEVER blank
-    devicesData = [
-      { name: "Android Phone", lastSeen: Date.now() - 7000 },
-      { name: "Laptop Chrome", lastSeen: Date.now() - 2000 }
-    ];
+    // optional internal update (hidden)
+    const container = document.getElementById("devices");
+    container.innerHTML = JSON.stringify(data);
+
+  } catch(e) {
+    console.log("Device fetch error");
   }
-
-  document.getElementById("count").innerText = devicesData.length;
-  document.getElementById("devicesCount").innerText = devicesData.length;
 }
 
+// 🔁 run every 2 sec
+setInterval(loadDevices, 2000);
 
-// ✅ LIVE TIMER (NO CRASH)
-function renderUsers() {
-  const users = document.getElementById("users");
-  if (!users) return;
-
-  users.innerHTML = "";
-
-  devicesData.forEach(d=>{
-    let last = d.lastSeen || Date.now();
-
-    const seconds = Math.floor((Date.now() - last)/1000);
-
-    let timeText = seconds + "s ago";
-    if(seconds >= 60){
-      timeText = Math.floor(seconds/60) + "m ago";
-    }
-
-    users.innerHTML += `
-      <tr>
-        <td>${d.name || "Unknown Device"}</td>
-        <td class="small">${timeText}</td>
-      </tr>
-    `;
-  });
-}
-
-
-// CONTROLS (SAFE)
-function startVideo(){ fetch("/start").catch(()=>{}) }
-function playVideo(){ fetch("/play").catch(()=>{}) }
-function pauseVideo(){ fetch("/pause").catch(()=>{}) }
-function nextVideo(){ fetch("/next").catch(()=>{}) }
-
-
-// PLAYLIST (unchanged UI)
-function addVideo() {
-  const url = document.getElementById("urlInput").value;
-  if (!url) return;
-
-  playlist.push(url);
-  renderPlaylist();
-
-  fetch("/add", {
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({url})
-  }).catch(()=>{});
-}
-
-function renderPlaylist() {
-  const tbody = document.getElementById("playlist");
-  tbody.innerHTML = "";
-
-  playlist.forEach((v,i)=>{
-    tbody.innerHTML += `
-    <tr>
-      <td>${i+1}</td>
-      <td>${v}</td>
-      <td>
-        <button class="action-btn playbtn" onclick="playIndex(${i})">▶ PLAY</button>
-        <button class="action-btn removebtn" onclick="removeVideo(${i})">🗑 REMOVE</button>
-      </td>
-    </tr>`;
-  });
-}
-
-function playIndex(i){
-  fetch("/start").catch(()=>{});
-  setTimeout(()=>fetch("/next").catch(()=>{}),200*i);
-}
-
-function removeVideo(i){
-  playlist.splice(i,1);
-  renderPlaylist();
-}
-
-
-// INTERVALS
-setInterval(renderUsers, 1000);
-setInterval(loadStatus, 5000);
-
-// INITIAL
-loadStatus();
 </script>
 
 </body>

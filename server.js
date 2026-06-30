@@ -2,33 +2,30 @@ const express = require("express");
 const app = express();
 
 app.use(express.json());
-app.use(express.static("public"));
+app.use(express.static(__dirname));
 
-// 🔥 GLOBAL STATE
 let playlist = [];
 let currentIndex = 0;
 let playing = false;
 let devices = {};
 
-// 📺 TV FETCH
+// 📺 TV API
 app.get("/video", (req, res) => {
   const id = req.query.tv || "unknown";
   const name = req.query.name || "TV";
 
   devices[id] = { id, name, lastSeen: Date.now() };
 
-  const url = playlist[currentIndex] || "";
-
   res.json({
-    url,
+    url: playlist[currentIndex] || "",
     playing
   });
 });
 
-// 📊 STATUS API
+// 📊 status
 app.get("/status", (req, res) => {
   const activeDevices = Object.values(devices).filter(
-    d => Date.now() - d.lastSeen < 5000
+    d => Date.now() - d.lastSeen < 15000
   );
 
   res.json({
@@ -39,46 +36,25 @@ app.get("/status", (req, res) => {
   });
 });
 
-// ➕ ADD VIDEO
+// ➕ add
 app.post("/add", (req, res) => {
   const { url } = req.body;
   if (url) playlist.push(url);
-  res.send("ok");
+  res.sendStatus(200);
 });
 
-// ▶ START
-app.post("/start", (req, res) => {
-  currentIndex = 0;
-  playing = true;
-  res.send("ok");
-});
+// ▶ controls
+app.post("/start", (req, res) => { playing = true; res.sendStatus(200); });
+app.post("/play", (req, res) => { playing = true; res.sendStatus(200); });
+app.post("/pause", (req, res) => { playing = false; res.sendStatus(200); });
 
-// ▶ PLAY
-app.post("/play", (req, res) => {
-  playing = true;
-  res.send("ok");
-});
-
-// ⏸ PAUSE
-app.post("/pause", (req, res) => {
-  playing = false;
-  res.send("ok");
-});
-
-// ⏭ NEXT
 app.post("/next", (req, res) => {
-  if (playlist.length > 0) {
+  if (playlist.length) {
     currentIndex = (currentIndex + 1) % playlist.length;
   }
-  res.send("ok");
+  res.sendStatus(200);
 });
 
-// 🔥 CLEAR PLAYLIST (NEW)
-app.post("/clear", (req, res) => {
-  playlist = [];
-  currentIndex = 0;
-  playing = false;
-  res.send("ok");
-});
-
-app.listen(3000, () => console.log("Server running"));
+// 🔥 Render FIX
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log("Running on", PORT));

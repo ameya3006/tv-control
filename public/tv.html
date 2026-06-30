@@ -10,6 +10,7 @@ body {
   overflow: hidden;
 }
 
+/* FORCE LANDSCAPE */
 video {
   position: fixed;
   top: 50%;
@@ -27,17 +28,17 @@ video {
 
 <video id="v" autoplay playsinline muted></video>
 
+<!-- DEBUG TEXT -->
+<p id="dbg" style="color:white; position:fixed; top:10px; left:10px; font-size:12px;">
+Loading...
+</p>
+
 <script>
-const API = window.location.origin;
+const API = "https://tv-control.onrender.com";
 const video = document.getElementById("v");
+const dbg = document.getElementById("dbg");
 
-// 🔥 FORCE USER INTERACTION FIX (VERY IMPORTANT)
-document.body.addEventListener("click", () => {
-  video.muted = false;
-  video.play().catch(()=>{});
-});
-
-// 🔥 RESET
+// RESET
 const params = new URLSearchParams(window.location.search);
 if (params.get("reset")) {
   localStorage.clear();
@@ -59,11 +60,19 @@ if (!TV_ID) {
 
 let lastUrl = "";
 
-// 🔁 LOOP
+// 👉 USER TAP FIX (important)
+document.body.addEventListener("click", () => {
+  video.muted = false;
+  video.play().catch(()=>{});
+});
+
+// LOOP
 setInterval(async () => {
   try {
     const res = await fetch(`${API}/video?tv=${TV_ID}&name=${encodeURIComponent(TV_NAME)}`);
     const data = await res.json();
+
+    dbg.innerText = "URL: " + data.url + " | Playing: " + data.playing;
 
     if (!data.url) return;
 
@@ -74,12 +83,13 @@ setInterval(async () => {
       video.muted = true;
       video.load();
 
-      // 🔥 HARD PLAY FIX
-      video.play().then(()=>{
-        console.log("Playing");
-      }).catch(err=>{
-        console.log("Autoplay blocked, waiting click");
-      });
+      setTimeout(() => {
+        video.play().then(()=>{
+          console.log("PLAYED");
+        }).catch(()=>{
+          console.log("BLOCKED");
+        });
+      }, 500);
     }
 
     if (data.playing) {
@@ -89,7 +99,7 @@ setInterval(async () => {
     }
 
   } catch (e) {
-    console.log("ERR:", e);
+    dbg.innerText = "ERROR FETCH";
   }
 }, 1500);
 </script>

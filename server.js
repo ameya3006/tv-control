@@ -4,60 +4,48 @@ const app = express();
 app.use(express.json());
 app.use(express.static("public"));
 
-let current = {
-  url: "",
-  action: "pause"
-};
-
-// 🔥 DEVICE STORE
-let devices = {};
-
-// 📺 TV CALL
-app.get("/current", (req, res) => {
-  const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
-
-  devices[ip] = {
-    lastSeen: Date.now()
-  };
-
-  res.json(current);
-});
+let devices = [];
+let state = { action: "pause", url: "" };
 
 // 🎮 CONTROL
 app.post("/control", (req, res) => {
-  const { url, action } = req.body;
+  const { action, url } = req.body;
 
-  if (url) current.url = url;
-  if (action) current.action = action;
+  if (action === "play" && url) {
+    state = { action: "play", url };
+  }
+
+  if (action === "pause") state.action = "pause";
+  if (action === "restart") state.action = "restart";
 
   res.sendStatus(200);
 });
 
-// 📱 DEVICE LIST
+// 📡 STATE
+app.get("/state", (req, res) => {
+  res.json(state);
+});
+
+// 🟢 PING (NO ID → refresh = new device)
+app.post("/ping", (req, res) => {
+  devices.push({
+    id: Math.random(),
+    name: "Device",
+    lastSeen: Date.now(),
+    status: "ONLINE"
+  });
+
+  res.sendStatus(200);
+});
+
+// 📊 DEVICES
 app.get("/devices", (req, res) => {
   const now = Date.now();
 
-  let list = Object.entries(devices).map(([ip, d]) => {
-    let diff = Math.floor((now - d.lastSeen) / 1000);
+  // 🔥 remove old devices (3 sec)
+  devices = devices.filter(d => now - d.lastSeen < 3000);
 
-    return {
-      name: ip,
-      status: diff < 10 ? "ONLINE" : "OFFLINE",
-      lastSeen: diff + "s ago"
-    };
-  });
-
-  res.json(list);
+  res.json(devices);
 });
 
-// 🧹 CLEAN OLD
-setInterval(() => {
-  const now = Date.now();
-  for (let ip in devices) {
-    if (now - devices[ip].lastSeen > 30000) {
-      delete devices[ip];
-    }
-  }
-}, 5000);
-
-app.listen(3000, () => console.log("Server running on 3000"));
+app.listen(3000, () => console.log("Server running"));

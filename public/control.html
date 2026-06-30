@@ -1,111 +1,17 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>TV Control Panel</title>
+  <title>TV Control</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <style>
-    body {
-      margin: 0;
-      font-family: Arial;
-      background: linear-gradient(135deg, #0b1220, #111827);
-      color: white;
-      padding: 20px;
-    }
-
-    h1 {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-
-    .card {
-      background: #0f172a;
-      border-radius: 12px;
-      padding: 15px;
-      margin-bottom: 15px;
-    }
-
-    .top {
-      display: flex;
-      gap: 10px;
-    }
-
-    .box {
-      flex: 1;
-      background: #1e293b;
-      padding: 15px;
-      border-radius: 10px;
-      text-align: center;
-      font-size: 16px;
-    }
-
-    .add-box {
-      display: flex;
-      gap: 10px;
-    }
-
-    input {
-      flex: 1;
-      padding: 12px;
-      border-radius: 8px;
-      border: none;
-      background: #020617;
-      color: white;
-    }
-
-    .add-btn {
-      background: #22c55e;
-      border: none;
-      padding: 12px 20px;
-      border-radius: 8px;
-      color: white;
-      cursor: pointer;
-    }
-
-    .controls {
-      display: flex;
-      gap: 10px;
-      flex-wrap: nowrap;
-      overflow-x: auto;
-    }
-
-    .controls button {
-      padding: 10px 15px;
-      border: none;
-      border-radius: 8px;
-      color: white;
-      cursor: pointer;
-      font-weight: bold;
-    }
-
-    .play { background: #22c55e; }
-    .pause { background: #ef4444; }
-    .next { background: #3b82f6; }
-    .restart { background: #f97316; }
-    .start { background: #8b5cf6; }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-    }
-
-    th, td {
-      padding: 10px;
-      border-bottom: 1px solid #333;
-      text-align: left;
-    }
-
-    .btn {
-      padding: 6px 10px;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      color: white;
-    }
-
-    .blue { background: #3b82f6; }
-    .red { background: #ef4444; }
+    body { margin:0; font-family:Arial; background:#0f0f0f; color:white; text-align:center;}
+    .box { background:#1c1c1c; margin:10px; padding:10px; border-radius:10px;}
+    input { width:80%; padding:10px; border-radius:6px; border:none; }
+    button { padding:10px; margin:5px; border:none; border-radius:6px; }
+    .add{background:green} .start{background:blue}
+    .play{background:orange} .pause{background:red} .next{background:purple}
+    li{background:#222;margin:5px;padding:8px;border-radius:5px;}
   </style>
 </head>
 
@@ -113,102 +19,85 @@
 
 <h1>📺 TV Control Panel</h1>
 
-<!-- TOP STATUS -->
-<div class="card top">
-  <div class="box">👀 Watching: <span id="watching">0</span></div>
-  <div class="box">💻 Online Devices: <span id="devices">0</span></div>
+<div class="box">
+  👀 Watching: <span id="count">0</span>
 </div>
 
-<!-- CONTROLS -->
-<div class="card">
-  <h3>🎮 Controls</h3>
-
-  <div class="controls">
-    <button class="play" onclick="send('play')">▶ PLAY</button>
-    <button class="pause" onclick="send('pause')">⏸ PAUSE</button>
-    <button class="next" onclick="send('next')">⏭ NEXT</button>
-    <button class="restart" onclick="send('restart')">🔁 RESTART</button>
-  </div>
+<div class="box">
+  📱 Online Devices
+  <ul id="devices"></ul>
 </div>
 
-<!-- ADD VIDEO -->
-<div class="card">
-  <h3>➕ Add Video URL</h3>
-
-  <div class="add-box">
-    <input id="url" placeholder="Paste MP4 URL">
-    <button class="add-btn" onclick="addVideo()">ADD & PLAY</button>
-  </div>
+<div class="box">
+  <input id="urlInput" placeholder="Paste video URL">
+  <br>
+  <button class="add" onclick="addVideo()">ADD</button><br>
+  <button class="start" onclick="startVideo()">START</button>
+  <button class="play" onclick="playVideo()">PLAY</button>
+  <button class="pause" onclick="pauseVideo()">PAUSE</button>
+  <button class="next" onclick="nextVideo()">NEXT</button>
 </div>
 
-<!-- USERS -->
-<div class="card">
-  <h3>📊 Connected Devices</h3>
-
-  <table>
-    <thead>
-      <tr>
-        <th>Device</th>
-        <th>Last Seen</th>
-      </tr>
-    </thead>
-    <tbody id="users"></tbody>
-  </table>
+<div class="box">
+  <h3>Playlist</h3>
+  <ul id="playlist"></ul>
 </div>
 
 <script>
+let playlist = [];
 
-function send(action, url = "") {
-  fetch("/control", {
-    method: "POST",
-    headers: {"Content-Type":"application/json"},
-    body: JSON.stringify({ action, url })
-  }).catch(()=>{});
-}
-
+// ➕ ADD
 function addVideo() {
-  const url = document.getElementById("url").value.trim();
+  const url = document.getElementById("urlInput").value;
   if (!url) return;
 
-  send("play", url);
-  document.getElementById("url").value = "";
+  playlist.push(url);
+  renderList();
+
+  fetch("/add", {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({url})
+  });
 }
 
-// ⏱ time format
-function timeAgo(t) {
-  return Math.floor((Date.now() - t) / 1000) + " sec ago";
+// 🎬 LIST
+function renderList() {
+  const ul = document.getElementById("playlist");
+  ul.innerHTML = "";
+
+  playlist.forEach(v => {
+    const li = document.createElement("li");
+    li.textContent = v;
+    ul.appendChild(li);
+  });
 }
 
-// 📡 load devices
-async function load() {
-  try {
-    const res = await fetch("/devices");
-    const data = await res.json();
+// ▶ CONTROL
+function startVideo(){ fetch("/start",{method:"POST"}) }
+function playVideo(){ fetch("/play",{method:"POST"}) }
+function pauseVideo(){ fetch("/pause",{method:"POST"}) }
+function nextVideo(){ fetch("/next",{method:"POST"}) }
 
-    document.getElementById("watching").innerText = data.length;
-    document.getElementById("devices").innerText = data.length;
+// 🔥 LIVE STATUS
+async function loadStatus() {
+  const res = await fetch("/status");
+  const data = await res.json();
 
-    const box = document.getElementById("users");
-    box.innerHTML = "";
+  document.getElementById("count").textContent = data.devices.length;
 
-    data.forEach(d => {
-      box.innerHTML += `
-        <tr>
-          <td>${d.name}</td>
-          <td>${timeAgo(d.lastSeen)}</td>
-        </tr>
-      `;
-    });
+  const ul = document.getElementById("devices");
+  ul.innerHTML = "";
 
-  } catch {
-    document.getElementById("watching").innerText = 0;
-    document.getElementById("devices").innerText = 0;
-  }
+  data.devices.forEach(d => {
+    const li = document.createElement("li");
+    li.textContent = d.name + " (" + d.id + ")";
+    ul.appendChild(li);
+  });
 }
 
-setInterval(load, 1000);
-load();
-
+setInterval(loadStatus, 2000);
+loadStatus();
 </script>
 
 </body>

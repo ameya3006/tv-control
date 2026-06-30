@@ -8,9 +8,12 @@
     body { margin:0; font-family:Arial; background:#0f0f0f; color:white; text-align:center;}
     .box { background:#1c1c1c; margin:10px; padding:10px; border-radius:10px;}
     input { width:80%; padding:10px; border-radius:6px; border:none; }
-    button { padding:10px; margin:5px; border:none; border-radius:6px; }
-    .add{background:green} .start{background:blue}
-    .play{background:orange} .pause{background:red} .next{background:purple}
+    button { padding:10px; margin:5px; border:none; border-radius:6px; cursor:pointer; }
+    .add{background:green}
+    .start{background:blue}
+    .play{background:orange}
+    .pause{background:red}
+    .next{background:purple}
     li{background:#222;margin:5px;padding:8px;border-radius:5px;}
   </style>
 </head>
@@ -31,7 +34,9 @@
 <div class="box">
   <input id="urlInput" placeholder="Paste video URL">
   <br>
+
   <button class="add" onclick="addVideo()">ADD</button><br>
+
   <button class="start" onclick="startVideo()">START</button>
   <button class="play" onclick="playVideo()">PLAY</button>
   <button class="pause" onclick="pauseVideo()">PAUSE</button>
@@ -44,11 +49,12 @@
 </div>
 
 <script>
+
 let playlist = [];
 
-// ➕ ADD
+// ➕ ADD VIDEO
 function addVideo() {
-  const url = document.getElementById("urlInput").value;
+  const url = document.getElementById("urlInput").value.trim();
   if (!url) return;
 
   playlist.push(url);
@@ -57,11 +63,11 @@ function addVideo() {
   fetch("/add", {
     method: "POST",
     headers: {"Content-Type":"application/json"},
-    body: JSON.stringify({url})
+    body: JSON.stringify({ url })
   });
 }
 
-// 🎬 LIST
+// 📜 RENDER PLAYLIST
 function renderList() {
   const ul = document.getElementById("playlist");
   ul.innerHTML = "";
@@ -73,31 +79,42 @@ function renderList() {
   });
 }
 
-// ▶ CONTROL
+// 🎮 CONTROLS
 function startVideo(){ fetch("/start",{method:"POST"}) }
 function playVideo(){ fetch("/play",{method:"POST"}) }
 function pauseVideo(){ fetch("/pause",{method:"POST"}) }
 function nextVideo(){ fetch("/next",{method:"POST"}) }
 
-// 🔥 LIVE STATUS
+// 📡 LIVE STATUS (FIXED HERE 🔥)
 async function loadStatus() {
-  const res = await fetch("/status");
-  const data = await res.json();
+  try {
+    const res = await fetch("/status");
+    const data = await res.json();
 
-  document.getElementById("count").textContent = data.devices.length;
+    // ✔ FIX: safe check
+    document.getElementById("count").textContent =
+      data.devices ? data.devices.length : 0;
 
-  const ul = document.getElementById("devices");
-  ul.innerHTML = "";
+    const ul = document.getElementById("devices");
+    ul.innerHTML = "";
 
-  data.devices.forEach(d => {
-    const li = document.createElement("li");
-    li.textContent = d.name + " (" + d.id + ")";
-    ul.appendChild(li);
-  });
+    (data.devices || []).forEach(d => {
+      const li = document.createElement("li");
+
+      // ✔ FIX: server sends "id", not "name"
+      li.textContent = d.id + " (" + Math.floor((Date.now()-d.lastSeen)/1000) + "s ago)";
+
+      ul.appendChild(li);
+    });
+
+  } catch (e) {
+    document.getElementById("count").textContent = 0;
+  }
 }
 
 setInterval(loadStatus, 2000);
 loadStatus();
+
 </script>
 
 </body>
